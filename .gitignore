@@ -1,0 +1,8 @@
+target/
+.settings/
+.project
+.classpath
+test-output/
+.idea/
+*.iml
+profiles.xml
