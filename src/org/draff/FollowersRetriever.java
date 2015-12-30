@@ -2,7 +2,6 @@ package org.draff;
 
 import twitter4j.*;
 import twitter4j.api.FriendsFollowersResources;
-
 /**
  * Created by dave on 12/28/15.
  */

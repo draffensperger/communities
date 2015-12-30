@@ -7,3 +7,4 @@ test-output/
 *.iml
 profiles.xml
 todo.txt
+*.p12

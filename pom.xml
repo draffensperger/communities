@@ -45,6 +45,11 @@
         </dependency>
         <dependency>
             <groupId>com.google.apis</groupId>
+            <artifactId>google-api-services-datastore-protobuf</artifactId>
+            <version>v1beta2-rev1-3.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.apis</groupId>
             <artifactId>google-api-services-datastore</artifactId>
             <version>v1beta2-rev26-1.21.0</version>
         </dependency>
