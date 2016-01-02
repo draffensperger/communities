@@ -8,3 +8,4 @@ test-output/
 profiles.xml
 todo.txt
 *.p12
+*.log

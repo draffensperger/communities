@@ -1,11 +1,13 @@
 package org.draff;
 
 import com.google.api.services.datastore.DatastoreV1.*;
+
 import static com.google.api.services.datastore.client.DatastoreHelper.*;
 import java.lang.reflect.*;
 import static java.util.Arrays.*;
 import java.util.List;
 import java.util.Date;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -16,19 +18,78 @@ import java.util.stream.Collectors;
  * Created by dave on 1/2/16.
  */
 public class EntityMapper {
+  private static String modelClassesPackage;
+
   public static final List<Class> DATASTORE_TYPES = asList(
-      String.class, Date.class, Boolean.TYPE, Boolean.class, Long.TYPE, Long.class
+      String.class, Date.class, Boolean.TYPE, Boolean.class, Long.TYPE, Long.class, Double.TYPE,
+      Double.class
   );
 
-  public static Entity objectToEntity(Object object) {
+  public static void setModelClassesPackage(String packageName) {
+    modelClassesPackage = packageName;
+  }
+
+  public static Entity toEntity(Object object) {
     Entity.Builder builder = Entity.newBuilder();
     propertyFields(object).forEach(f -> addProperty(builder, object, f));
     addKey(builder, object);
     return builder.build();
   }
 
-  public static Object entityToObject(Entity entity) {
-    return null;
+  public static Object fromEntity(Entity entity) {
+    Key.PathElement pathElement = entity.getKey().getPathElement(0);
+    String className = pathElement.getKind();
+
+    Class clazz;
+    try {
+      clazz = Class.forName(modelClassesPackage + "." + className);
+    } catch (ClassNotFoundException e) {
+      e.printStackTrace();
+      return null;
+    }
+    Object object;
+    try {
+      object = clazz.newInstance();
+    } catch (IllegalAccessException|InstantiationException e) {
+      e.printStackTrace();
+      return null;
+    }
+
+    Map<String, Value> props = getPropertyMap(entity);
+
+    List<Field> fields = propertyFields(object);
+    for (Field field : fields) {
+      try {
+        field.set(object, fromValue(props.get(field.getName())));
+      } catch (IllegalAccessException e) {
+        e.printStackTrace();
+        return null;
+      }
+    }
+
+    Field idField;
+    try {
+      idField = object.getClass().getDeclaredField("id");
+    } catch(NoSuchFieldException e) {
+      return object;
+    }
+
+    Class idFieldType = idField.getType();
+    Object idValue = null;
+
+    if (idFieldType == Long.TYPE || idFieldType == Long.class) {
+      idValue = pathElement.getId();
+    } else if (idFieldType == String.class) {
+      idValue = pathElement.getName();
+    }
+
+    try {
+      idField.set(object, idValue);
+    } catch(IllegalAccessException e) {
+      e.printStackTrace();
+    }
+
+    return object;
   }
 
   private static List<Field> propertyFields(Object object) {
@@ -39,7 +100,7 @@ public class EntityMapper {
 
   private static void addProperty(Entity.Builder builder, Object object, Field field) {
     try {
-      builder.addProperty(makeProperty(field.getName(), datastoreValue(field.get(object))));
+      builder.addProperty(makeProperty(field.getName(), toValue(field.get(object))));
     } catch (IllegalAccessException e) {
       e.printStackTrace();
     }
@@ -66,16 +127,37 @@ public class EntityMapper {
     }
   }
 
-  private static Value.Builder datastoreValue(Object object) {
+  private static Value.Builder toValue(Object object) {
     if (object instanceof Long) {
       return makeValue((Long)object);
     } else if (object instanceof String) {
       return makeValue((String)object);
+    } else if (object instanceof Double) {
+      return makeValue((Double)object);
     } else if (object instanceof Boolean) {
       return makeValue((Boolean)object);
+    } else if (object instanceof Date) {
+      return makeValue((Date)object);
     } else {
       throw new IllegalArgumentException(
           "Can't make Datastore value for " + object.getClass() + ": " + object);
+    }
+  }
+
+  private static Object fromValue(Value value) {
+    if (value.hasIntegerValue()) {
+      return value.getIntegerValue();
+    } else if (value.hasStringValue()) {
+      return value.getStringValue();
+    } else if (value.hasDoubleValue()) {
+      return value.getDoubleValue();
+    } else if (value.hasBooleanValue()) {
+      return value.getBooleanValue();
+    } else if (value.hasTimestampMicrosecondsValue()) {
+      return value.getTimestampMicrosecondsValue();
+    } else {
+      throw new IllegalArgumentException(
+          "Not configured to convert Datastore value " + value);
     }
   }
 }

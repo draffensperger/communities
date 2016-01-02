@@ -1,7 +1,7 @@
 package org.draff;
 
-import org.junit.Test;
 import org.junit.Before;
+import org.junit.Test;
 
 import static org.junit.Assert.*;
 import static com.google.api.services.datastore.client.DatastoreHelper.*;
@@ -13,33 +13,19 @@ import java.util.Map;
  * Created by dave on 1/2/16.
  */
 public class EntityMapperTest {
-  class TestModel {
-    long id;
-    String stringProp;
-    long longProp;
-  }
-
-  class TestModelWithIdMethod {
-    String stringProp;
-    long longProp;
-    String id() {
-      return stringProp + ":" + longProp;
-    }
-  }
-
   @Before
   public void setup() {
-    System.out.println("Settting up test");
+    EntityMapper.setModelClassesPackage(this.getClass().getPackage().getName());
   }
 
   @Test
-  public void testObjectToEntityWithIdField() {
+  public void testToEntityWithIdField() {
     TestModel model = new TestModel();
     model.id = 5;
     model.stringProp = "hi";
     model.longProp = -3;
 
-    Entity entity = EntityMapper.objectToEntity(model);
+    Entity entity = EntityMapper.toEntity(model);
     Map<String, Value> props = getPropertyMap(entity);
     PathElement pathElement = entity.getKey().getPathElement(0);
     assertEquals(5, pathElement.getId());
@@ -51,12 +37,12 @@ public class EntityMapperTest {
   }
 
   @Test
-  public void testObjectToEntityWithIdMethod() {
+  public void testToEntityWithIdMethod() {
     TestModelWithIdMethod model = new TestModelWithIdMethod();
     model.stringProp = "h";
     model.longProp = 1;
 
-    Entity entity = EntityMapper.objectToEntity(model);
+    Entity entity = EntityMapper.toEntity(model);
     Map<String, Value> props = getPropertyMap(entity);
     PathElement pathElement = entity.getKey().getPathElement(0);
     assertEquals("h:1", pathElement.getName());
@@ -67,6 +53,30 @@ public class EntityMapperTest {
   }
 
   @Test
-  public void testEntityToObject() {
+  public void testFromEntity() {
+    Entity entity = Entity.newBuilder()
+        .setKey(makeKey("TestModel", 5))
+        .addProperty(makeProperty("stringProp", makeValue("str")))
+        .addProperty(makeProperty("longProp", makeValue(-6)))
+        .build();
+
+    TestModel model = (TestModel) EntityMapper.fromEntity(entity);
+    assertEquals("str", model.stringProp);
+    assertEquals(-6, model.longProp);
+    assertEquals(5, model.id);
+  }
+
+  @Test
+  public void testFromEntityWithIdMethod() {
+    Entity entity = Entity.newBuilder()
+        .setKey(makeKey("TestModelWithIdMethod", "str:-6"))
+        .addProperty(makeProperty("stringProp", makeValue("str")))
+        .addProperty(makeProperty("longProp", makeValue(-6)))
+        .build();
+
+    TestModelWithIdMethod model = (TestModelWithIdMethod) EntityMapper.fromEntity(entity);
+    assertEquals("str", model.stringProp);
+    assertEquals(-6, model.longProp);
+    assertEquals("str:-6", model.id());
   }
 }
