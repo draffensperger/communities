@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  * Created by dave on 1/2/16.
  */
 public class EntityMapper {
-  private static String modelClassesPackage;
+  private static String modelsPrefix;
 
   public static final List<Class> DATASTORE_TYPES = asList(
       String.class, Date.class, Boolean.TYPE, Boolean.class, Long.TYPE, Long.class, Double.TYPE,
@@ -26,7 +26,7 @@ public class EntityMapper {
   );
 
   public static void setModelClassesPackage(String packageName) {
-    modelClassesPackage = packageName;
+    modelsPrefix = packageName + ".";
   }
 
   public static Entity toEntity(Object object) {
@@ -38,34 +38,9 @@ public class EntityMapper {
 
   public static Object fromEntity(Entity entity) {
     Key.PathElement pathElement = entity.getKey().getPathElement(0);
-    String className = pathElement.getKind();
+    Object object = instanceFromEntity(entity);
 
-    Class clazz;
-    try {
-      clazz = Class.forName(modelClassesPackage + "." + className);
-    } catch (ClassNotFoundException e) {
-      e.printStackTrace();
-      return null;
-    }
-    Object object;
-    try {
-      object = clazz.newInstance();
-    } catch (IllegalAccessException|InstantiationException e) {
-      e.printStackTrace();
-      return null;
-    }
-
-    Map<String, Value> props = getPropertyMap(entity);
-
-    List<Field> fields = propertyFields(object);
-    for (Field field : fields) {
-      try {
-        field.set(object, fromValue(props.get(field.getName())));
-      } catch (IllegalAccessException e) {
-        e.printStackTrace();
-        return null;
-      }
-    }
+    setObjectFields(object, entity);
 
     Field idField;
     try {
@@ -92,10 +67,41 @@ public class EntityMapper {
     return object;
   }
 
+  private static Object instanceFromEntity(Entity entity) {
+    try {
+      return entityModelClass(entity).newInstance();
+    } catch (IllegalAccessException|InstantiationException e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+
+  private static Class entityModelClass(Entity entity) {
+    try {
+      return Class.forName(modelsPrefix + entity.getKey().getPathElement(0).getKind());
+    } catch (ClassNotFoundException e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+
   private static List<Field> propertyFields(Object object) {
     return asList(object.getClass().getDeclaredFields()).stream().filter(
         f -> f.getName() != "id" && DATASTORE_TYPES.contains(f.getType())
     ).collect(Collectors.toList());
+  }
+
+  private static void setObjectFields(Object object, Entity entity) {
+    Map<String, Value> props = getPropertyMap(entity);
+    propertyFields(object).forEach(f -> setFieldValue(object, f, props.get(f.getName())));
+  }
+
+  private static void setFieldValue(Object object, Field field, Value value) {
+    try {
+      field.set(object, fromValue(value));
+    } catch (IllegalAccessException e) {
+      e.printStackTrace();
+    }
   }
 
   private static void addProperty(Entity.Builder builder, Object object, Field field) {
