@@ -7,7 +7,6 @@ import java.lang.reflect.*;
 import static java.util.Arrays.*;
 import java.util.List;
 import java.util.Date;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -31,39 +30,17 @@ public class EntityMapper {
 
   public static Entity toEntity(Object object) {
     Entity.Builder builder = Entity.newBuilder();
-    propertyFields(object).forEach(f -> addProperty(builder, object, f));
-    addKey(builder, object);
+    setEntityKey(builder, object);
+
+    propertyFields(object).forEach(field -> setPropertyFromObject(builder, field, object));
     return builder.build();
   }
 
   public static Object fromEntity(Entity entity) {
-    Key.PathElement pathElement = entity.getKey().getPathElement(0);
     Object object = instanceFromEntity(entity);
+    setObjectId(object, entity);
 
-    setObjectFields(object, entity);
-
-    Field idField;
-    try {
-      idField = object.getClass().getDeclaredField("id");
-    } catch(NoSuchFieldException e) {
-      return object;
-    }
-
-    Class idFieldType = idField.getType();
-    Object idValue = null;
-
-    if (idFieldType == Long.TYPE || idFieldType == Long.class) {
-      idValue = pathElement.getId();
-    } else if (idFieldType == String.class) {
-      idValue = pathElement.getName();
-    }
-
-    try {
-      idField.set(object, idValue);
-    } catch(IllegalAccessException e) {
-      e.printStackTrace();
-    }
-
+    propertyFields(object).forEach(field -> setFieldFromEntity(object, field, entity));
     return object;
   }
 
@@ -75,7 +52,6 @@ public class EntityMapper {
       return null;
     }
   }
-
   private static Class entityModelClass(Entity entity) {
     try {
       return Class.forName(modelsPrefix + entity.getKey().getPathElement(0).getKind());
@@ -85,42 +61,25 @@ public class EntityMapper {
     }
   }
 
-  private static List<Field> propertyFields(Object object) {
-    return asList(object.getClass().getDeclaredFields()).stream().filter(
-        f -> f.getName() != "id" && DATASTORE_TYPES.contains(f.getType())
-    ).collect(Collectors.toList());
-  }
-
-  private static void setObjectFields(Object object, Entity entity) {
-    Map<String, Value> props = getPropertyMap(entity);
-    propertyFields(object).forEach(f -> setFieldValue(object, f, props.get(f.getName())));
-  }
-
-  private static void setFieldValue(Object object, Field field, Value value) {
-    try {
-      field.set(object, fromValue(value));
-    } catch (IllegalAccessException e) {
-      e.printStackTrace();
-    }
-  }
-
-  private static void addProperty(Entity.Builder builder, Object object, Field field) {
-    try {
-      builder.addProperty(makeProperty(field.getName(), toValue(field.get(object))));
-    } catch (IllegalAccessException e) {
-      e.printStackTrace();
-    }
-  }
-
-  private static void addKey(Entity.Builder builder, Object object) {
+  private static void setEntityKey(Entity.Builder builder, Object object) {
     builder.setKey(makeKey(
-        object.getClass().getSimpleName(), fieldOrMethodValue(object, "id")
+        object.getClass().getSimpleName(), getObjectId(object)
     ));
   }
 
-  private static Object fieldOrMethodValue(Object object, String fieldOrMethodName) {
+  private static void setObjectId(Object object, Entity entity) {
+    Field idField;
     try {
-      Field idField = object.getClass().getDeclaredField(fieldOrMethodName);
+      idField = object.getClass().getDeclaredField("id");
+    } catch(NoSuchFieldException e) {
+      return;
+    }
+    setField(object, idField, getEntityId(entity));
+  }
+
+  private static Object getObjectId(Object object) {
+    try {
+      Field idField = object.getClass().getDeclaredField("id");
       return idField.get(object);
     } catch(NoSuchFieldException|IllegalAccessException e) {}
 
@@ -128,6 +87,46 @@ public class EntityMapper {
       Method idMethod = object.getClass().getDeclaredMethod("id", null);
       return idMethod.invoke(object);
     } catch(NoSuchMethodException|IllegalAccessException|InvocationTargetException e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+
+  private static Object getEntityId(Entity entity) {
+    Key.PathElement pathElement = entity.getKey().getPathElement(0);
+    if (pathElement.hasId()) {
+      return pathElement.getId();
+    } else {
+      return pathElement.getName();
+    }
+  }
+
+  private static List<Field> propertyFields(Object object) {
+    return asList(object.getClass().getDeclaredFields()).stream().filter(
+        f -> f.getName() != "id" && DATASTORE_TYPES.contains(f.getType())
+    ).collect(Collectors.toList());
+  }
+
+  private static void setPropertyFromObject(Entity.Builder builder, Field field, Object object) {
+    builder.addProperty(makeProperty(field.getName(), toValue(getField(object, field))));
+  }
+
+  private static void setFieldFromEntity(Object object, Field field, Entity entity) {
+    setField(object, field, fromValue(getPropertyMap(entity).get(field.getName())));
+  }
+
+  private static void setField(Object object, Field field, Object value) {
+    try {
+      field.set(object, value);
+    } catch (IllegalAccessException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private static Object getField(Object object, Field field) {
+    try {
+      return field.get(object);
+    } catch (IllegalAccessException e) {
       e.printStackTrace();
       return null;
     }
