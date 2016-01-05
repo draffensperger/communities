@@ -6,5 +6,4 @@ package org.draff;
 public class Follower {
   long userId;
   long followerId;
-  long retrievedAt;
 }

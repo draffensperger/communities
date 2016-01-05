@@ -4,18 +4,70 @@ import com.google.api.services.datastore.DatastoreV1.*;
 import com.google.api.services.datastore.client.Datastore;
 import com.google.api.services.datastore.client.DatastoreException;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.google.api.services.datastore.client.DatastoreHelper.*;
 
 /**
- * Created by dave on 1/1/16.
+ * Created by dave on 1/3/16.
  */
-public class DatastoreDb implements FollowerDb {
+public class DatastoreUtil {
   private Datastore datastore;
-  public DatastoreDb(Datastore datastore) {
+  public DatastoreUtil(Datastore datastore) {
     this.datastore = datastore;
   }
+
+  public void saveUpsert(Entity entity) {
+    saveMutation(Mutation.newBuilder().addUpsert(entity));
+  }
+
+  public void saveUpserts(Entity[] entities) {
+    Mutation.Builder mutation = Mutation.newBuilder();
+    for (Entity entity : entities) {
+      mutation.addUpsert(entity);
+    }
+    saveMutation(mutation);
+  }
+
+  public void saveDelete(Key.Builder key) {
+    Mutation.Builder mutation = Mutation.newBuilder();
+    mutation.addDelete(key);
+    saveMutation(mutation);
+  }
+
+  public void saveMutation(Mutation.Builder mutation) {
+    CommitRequest request = CommitRequest.newBuilder()
+        .setMode(CommitRequest.Mode.NON_TRANSACTIONAL)
+        .setMutation(mutation)
+        .build();
+
+    try {
+      datastore.commit(request);
+    } catch (DatastoreException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public Entity findOne(String kind, Filter filter) {
+    Query.Builder q = Query.newBuilder();
+    q.addKindBuilder().setName(kind);
+    if (filter != null) {
+      q.setFilter(filter);
+    }
+    q.setLimit(1);
+    RunQueryRequest request = RunQueryRequest.newBuilder().setQuery(q.build()).build();
+    return firstResult(request);
+  }
+
+  public Entity firstResult(RunQueryRequest request) {
+    try {
+      RunQueryResponse response = datastore.runQuery(request);
+      List<EntityResult> results = response.getBatch().getEntityResultList();
+      return results.isEmpty() ? null : results.get(0).getEntity();
+    } catch (DatastoreException e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+
+/*  private Datastore datastore;
 
   public void saveUsers(Iterable<TwitterUser> users) {
     long updatedAt = System.currentTimeMillis();
@@ -68,49 +120,5 @@ public class DatastoreDb implements FollowerDb {
         .addProperty(makeProperty("retrievedAt", makeValue(follower.retrievedAt)))
         .build();
   }
-
-  private void saveUpsert(Entity entity) {
-    saveMutation(Mutation.newBuilder().addUpsert(entity));
-  }
-
-  private void saveUpserts(Entity[] entities) {
-    Mutation.Builder mutation = Mutation.newBuilder();
-    for (Entity entity : entities) {
-      mutation.addUpsert(entity);
-    }
-    saveMutation(mutation);
-  }
-
-  private void saveMutation(Mutation.Builder mutation) {
-    CommitRequest request = CommitRequest.newBuilder()
-        .setMode(CommitRequest.Mode.NON_TRANSACTIONAL)
-        .setMutation(mutation)
-        .build();
-
-    try {
-      datastore.commit(request);
-    } catch (DatastoreException e) {
-      e.printStackTrace();
-    }
-  }
-
-  private Entity findOne(String kind, Filter filter) {
-    Query.Builder q = Query.newBuilder();
-    q.addKindBuilder().setName(kind);
-    q.setFilter(filter);
-    q.setLimit(1);
-    RunQueryRequest request = RunQueryRequest.newBuilder().setQuery(q.build()).build();
-    return firstResult(request);
-  }
-
-  private Entity firstResult(RunQueryRequest request) {
-    try {
-      RunQueryResponse response = datastore.runQuery(request);
-      List<EntityResult> results = response.getBatch().getEntityResultList();
-      return results.isEmpty() ? null : results.get(0).getEntity();
-    } catch (DatastoreException e) {
-      e.printStackTrace();
-      return null;
-    }
-  }
+*/
 }

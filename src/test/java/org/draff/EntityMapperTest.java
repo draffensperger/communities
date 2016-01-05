@@ -13,9 +13,11 @@ import java.util.Map;
  * Created by dave on 1/2/16.
  */
 public class EntityMapperTest {
+  private static final String kindPrefix = EntityMapperTest.class.getPackage().getName() + ".";
+
   @Before
   public void setup() {
-    EntityMapper.setModelClassesPackage(this.getClass().getPackage().getName());
+    TestDatastore.clean();
   }
 
   @Test
@@ -29,7 +31,7 @@ public class EntityMapperTest {
     Map<String, Value> props = getPropertyMap(entity);
     PathElement pathElement = entity.getKey().getPathElement(0);
     assertEquals(5, pathElement.getId());
-    assertEquals("TestModel", pathElement.getKind());
+    assertEquals(kindPrefix + "TestModel", pathElement.getKind());
 
     assertEquals(2, props.keySet().size());
     assertEquals(-3, getLong(props.get("longProp")));
@@ -46,7 +48,7 @@ public class EntityMapperTest {
     Map<String, Value> props = getPropertyMap(entity);
     PathElement pathElement = entity.getKey().getPathElement(0);
     assertEquals("h:1", pathElement.getName());
-    assertEquals("TestModelWithIdMethod", pathElement.getKind());
+    assertEquals(kindPrefix + "TestModelWithIdMethod", pathElement.getKind());
 
     assertEquals(1, getLong(props.get("longProp")));
     assertEquals("h", getString(props.get("stringProp")));
@@ -55,7 +57,7 @@ public class EntityMapperTest {
   @Test
   public void testFromEntity() {
     Entity entity = Entity.newBuilder()
-        .setKey(makeKey("TestModel", 5))
+        .setKey(makeKey(kindPrefix + "TestModel", 5))
         .addProperty(makeProperty("stringProp", makeValue("str")))
         .addProperty(makeProperty("longProp", makeValue(-6)))
         .build();
@@ -69,7 +71,7 @@ public class EntityMapperTest {
   @Test
   public void testFromEntityWithIdMethod() {
     Entity entity = Entity.newBuilder()
-        .setKey(makeKey("TestModelWithIdMethod", "str:-6"))
+        .setKey(makeKey(kindPrefix + "TestModelWithIdMethod", "str:-6"))
         .addProperty(makeProperty("stringProp", makeValue("str")))
         .addProperty(makeProperty("longProp", makeValue(-6)))
         .build();
@@ -78,5 +80,11 @@ public class EntityMapperTest {
     assertEquals("str", model.stringProp);
     assertEquals(-6, model.longProp);
     assertEquals("str:-6", model.id());
+  }
+
+  @Test
+  public void testGivesAndReceivesNull() {
+    assertNull(EntityMapper.toEntity(null));
+    assertNull(EntityMapper.fromEntity(null));
   }
 }

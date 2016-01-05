@@ -17,18 +17,13 @@ import java.util.stream.Collectors;
  * Created by dave on 1/2/16.
  */
 public class EntityMapper {
-  private static String modelsPrefix;
-
-  public static final List<Class> DATASTORE_TYPES = asList(
+  private static final List<Class> DATASTORE_TYPES = asList(
       String.class, Date.class, Boolean.TYPE, Boolean.class, Long.TYPE, Long.class, Double.TYPE,
       Double.class
   );
 
-  public static void setModelClassesPackage(String packageName) {
-    modelsPrefix = packageName + ".";
-  }
-
   public static Entity toEntity(Object object) {
+    if (object == null)  { return null; }
     Entity.Builder builder = Entity.newBuilder();
     setEntityKey(builder, object);
 
@@ -37,11 +32,16 @@ public class EntityMapper {
   }
 
   public static Object fromEntity(Entity entity) {
+    if (entity == null)  { return null; }
     Object object = instanceFromEntity(entity);
     setObjectId(object, entity);
 
     propertyFields(object).forEach(field -> setFieldFromEntity(object, field, entity));
     return object;
+  }
+
+  public static String entityKind(Class clazz) {
+    return clazz.getName();
   }
 
   private static Object instanceFromEntity(Entity entity) {
@@ -54,7 +54,7 @@ public class EntityMapper {
   }
   private static Class entityModelClass(Entity entity) {
     try {
-      return Class.forName(modelsPrefix + entity.getKey().getPathElement(0).getKind());
+      return Class.forName(entity.getKey().getPathElement(0).getKind());
     } catch (ClassNotFoundException e) {
       e.printStackTrace();
       return null;
@@ -62,9 +62,7 @@ public class EntityMapper {
   }
 
   private static void setEntityKey(Entity.Builder builder, Object object) {
-    builder.setKey(makeKey(
-        object.getClass().getSimpleName(), getObjectId(object)
-    ));
+    builder.setKey(makeKey(entityKind(object.getClass()), getObjectId(object)));
   }
 
   private static void setObjectId(Object object, Entity entity) {
@@ -77,7 +75,7 @@ public class EntityMapper {
     setField(object, idField, getEntityId(entity));
   }
 
-  private static Object getObjectId(Object object) {
+  public static Object getObjectId(Object object) {
     try {
       Field idField = object.getClass().getDeclaredField("id");
       return idField.get(object);
