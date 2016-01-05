@@ -31,7 +31,7 @@ public class DatastoreDb implements ObjectDb {
 
   @Override
   public <T> T findOne(Class<T> clazz) {
-    return clazz.cast(fromEntity(util.findOne(entityKind(clazz), null)));
+    return clazz.cast(fromEntity(util.findOne(entityKind(clazz), null), clazz));
   }
 
   @Override

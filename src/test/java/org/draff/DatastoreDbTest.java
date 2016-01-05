@@ -26,12 +26,11 @@ public class DatastoreDbTest {
   @Before
   public void setup() {
     db = new DatastoreDb(TestDatastore.get());
+    TestDatastore.clean();
   }
 
   @Test
-  public void testSaveGetAndDeleteCursors() {
-    TestDatastore.clean();
-
+  public void testSaveFindOneAndDelete() {
     FollowersCursor cursor = new FollowersCursor();
     cursor.id = 1;
     cursor.cursor = 10;
@@ -50,5 +49,9 @@ public class DatastoreDbTest {
 
     db.delete(cursor);
     assertNull(db.findOne(FollowersCursor.class));
+  }
+
+  @Test
+  public void testSaveMultiple() {
   }
 }

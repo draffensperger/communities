@@ -31,22 +31,22 @@ public class EntityMapper {
     return builder.build();
   }
 
-  public static Object fromEntity(Entity entity) {
+  public static <T> T fromEntity(Entity entity, Class<T> clazz) {
     if (entity == null)  { return null; }
-    Object object = instanceFromEntity(entity);
+    Object object = newInstance(clazz);
     setObjectId(object, entity);
 
     propertyFields(object).forEach(field -> setFieldFromEntity(object, field, entity));
-    return object;
+    return clazz.cast(object);
   }
 
   public static String entityKind(Class clazz) {
-    return clazz.getName();
+    return clazz.getSimpleName();
   }
 
-  private static Object instanceFromEntity(Entity entity) {
+  private static Object newInstance(Class clazz) {
     try {
-      return entityModelClass(entity).newInstance();
+      return clazz.newInstance();
     } catch (IllegalAccessException|InstantiationException e) {
       e.printStackTrace();
       return null;
