@@ -52,14 +52,6 @@ public class EntityMapper {
       return null;
     }
   }
-  private static Class entityModelClass(Entity entity) {
-    try {
-      return Class.forName(entity.getKey().getPathElement(0).getKind());
-    } catch (ClassNotFoundException e) {
-      e.printStackTrace();
-      return null;
-    }
-  }
 
   private static void setEntityKey(Entity.Builder builder, Object object) {
     builder.setKey(makeKey(entityKind(object.getClass()), getObjectId(object)));

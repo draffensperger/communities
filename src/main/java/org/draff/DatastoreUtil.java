@@ -18,7 +18,7 @@ public class DatastoreUtil {
     saveMutation(Mutation.newBuilder().addUpsert(entity));
   }
 
-  public void saveUpserts(Entity[] entities) {
+  public void saveUpserts(List<Entity> entities) {
     Mutation.Builder mutation = Mutation.newBuilder();
     for (Entity entity : entities) {
       mutation.addUpsert(entity);
@@ -62,6 +62,17 @@ public class DatastoreUtil {
       List<EntityResult> results = response.getBatch().getEntityResultList();
       return results.isEmpty() ? null : results.get(0).getEntity();
     } catch (DatastoreException e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+
+  public List<EntityResult> findByIds(Iterable<Key> keys) {
+    LookupRequest request = LookupRequest.newBuilder().addAllKey(keys).build();
+    try {
+      LookupResponse response = datastore.lookup(request);
+      return response.getFoundList();
+    } catch(DatastoreException e) {
       e.printStackTrace();
       return null;
     }
