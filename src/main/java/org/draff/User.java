@@ -5,8 +5,9 @@ package org.draff;
  */
 public class User {
   long id;
-  long depthGoal;
+  long followerDepthGoal;
   long followerDepth;
   long updatedAt;
-  boolean detailsRetrieved;
+  long detailsRetrievedAt;
+  long followersCursor;
 }

@@ -51,7 +51,6 @@ public class UserDetails {
 
   public void setFieldsFromTwitterUser(twitter4j.User u) {
     retrievedAt = System.currentTimeMillis();
-    //status = u.getStatus();
 
     id = u.getId();
     screenName = u.getScreenName();

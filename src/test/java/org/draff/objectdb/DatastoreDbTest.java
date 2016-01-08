@@ -133,6 +133,22 @@ public class DatastoreDbTest {
     assertEquals(1, found2.depthGoal);
   }
 
+  @Test
+  public void testFindById() {
+    assertNull(db.findById(User.class, 8L));
+
+    User user = new User();
+    user.id = 8;
+    user.depthGoal = 5;
+    db.save(user);
+    waitForEventualSave(User.class);
+
+    User found = db.findById(User.class, 8L);
+    assertNotNull(found);
+    assertEquals(8, found.id);
+    assertEquals(5, found.depthGoal);
+  }
+
   private void waitForEventualSave(Class clazz) {
     waitOnEventualConsistency(() -> db.findOne(clazz) != null);
   }

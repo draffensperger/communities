@@ -58,6 +58,10 @@ public class DatastoreDb implements ObjectDb {
         .collect(Collectors.toList());
   }
 
+  public <T> T findById(Class<T> clazz, Object id) {
+    return fromEntity(util.findById(makeKey(entityKind(clazz), id).build()), clazz);
+  }
+
   public void delete(Object object) {
     util.saveDelete(makeKey(entityKind(object.getClass()), getObjectId(object)));
   }

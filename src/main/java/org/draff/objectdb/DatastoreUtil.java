@@ -78,6 +78,20 @@ public class DatastoreUtil {
     }
   }
 
+  public Entity findById(Key key) {
+    LookupRequest request = LookupRequest.newBuilder().addKey(key).build();
+    try {
+      LookupResponse response = datastore.lookup(request);
+      if (response.getFoundCount() == 0) {
+        return null;
+      }
+      return response.getFound(0).getEntity();
+    } catch(DatastoreException e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+
 /*  private Datastore datastore;
 
   public void saveUsers(Iterable<TwitterUser> users) {

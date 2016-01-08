@@ -12,5 +12,6 @@ public interface ObjectDb {
   <T> T findOne(Class<T> clazz);
   <T> T findOne(Class<T> clazz, Map<String, Object> fieldConstraints);
   <T> List<T> findByIds(Class<T> clazz, List<Object> ids);
+  <T> T findById(Class<T> clazz, Object id);
   void delete(Object object);
 }
