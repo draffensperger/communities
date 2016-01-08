@@ -8,4 +8,5 @@ public class User {
   long depthGoal;
   long followerDepth;
   long updatedAt;
+  boolean detailsRetrieved;
 }

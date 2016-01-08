@@ -2,6 +2,7 @@ package org.draff;
 
 import java.util.Properties;
 
+import org.draff.objectdb.*;
 import twitter4j.*;
 import org.apache.log4j.PropertyConfigurator;
 import com.google.api.services.datastore.client.Datastore;
@@ -16,6 +17,12 @@ import java.security.GeneralSecurityException;
 public class Main {
   public static void main(String[] args) {
     setupLogger();
+    GetFollowersWorker worker = new GetFollowersWorker(objectDb(), twitter());
+    worker.run();
+  }
+
+  private static ObjectDb objectDb() {
+    return new DatastoreDb(datastore());
   }
 
   private static Datastore datastore() {
