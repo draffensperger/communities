@@ -1,6 +1,5 @@
-package org.draff;
+package org.draff.objectdb;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -12,12 +11,22 @@ import java.util.Map;
 /**
  * Created by dave on 1/2/16.
  */
-public class EntityMapperTest {
-  @Before
-  public void setup() {
-    TestDatastore.clean();
-  }
 
+class TestModel {
+  long id;
+  String stringProp;
+  long longProp;
+}
+
+class TestModelWithIdMethod {
+  String stringProp;
+  long longProp;
+  public String id() {
+    return stringProp + ":" + longProp;
+  }
+}
+
+public class EntityMapperTest {
   @Test
   public void testToEntityWithIdField() {
     TestModel model = new TestModel();

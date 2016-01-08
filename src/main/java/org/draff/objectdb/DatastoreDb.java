@@ -1,16 +1,16 @@
-package org.draff;
+package org.draff.objectdb;
 
 import com.google.api.services.datastore.client.Datastore;
 import com.google.api.services.datastore.DatastoreV1.*;
+
 import static com.google.api.services.datastore.client.DatastoreHelper.*;
 
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-import static org.draff.EntityMapper.*;
+import static org.draff.objectdb.EntityMapper.*;
 
 /**
  * Created by dave on 1/1/16.

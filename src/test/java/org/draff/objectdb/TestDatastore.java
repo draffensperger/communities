@@ -1,11 +1,10 @@
-package org.draff;
+package org.draff.objectdb;
 
 import com.google.api.services.datastore.client.*;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
-import java.util.List;
-
+import org.draff.objectdb.DatastoreDb;
 /**
  * Created by dave on 1/3/16.
  */
@@ -21,8 +20,17 @@ public class TestDatastore {
     return datastore;
   }
 
-  public static void clean() {
-    new DatastoreCleaner(datastore).clean();
+  public static void clean(Class... modelClasses) {
+    Arrays.asList(modelClasses).forEach(clazz -> deleteObjects(clazz));
+  }
+
+  private static void deleteObjects(Class clazz) {
+    DatastoreDb db = new DatastoreDb(datastore);
+    Object object = db.findOne(clazz);
+    while(object != null) {
+      db.delete(object);
+      object = db.findOne(clazz);
+    }
   }
 
   private static void setupDatastore() {

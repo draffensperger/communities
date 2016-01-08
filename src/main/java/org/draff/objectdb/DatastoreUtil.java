@@ -1,4 +1,4 @@
-package org.draff;
+package org.draff.objectdb;
 
 import com.google.api.services.datastore.DatastoreV1.*;
 import com.google.api.services.datastore.client.Datastore;

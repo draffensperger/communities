@@ -1,4 +1,4 @@
-package org.draff;
+package org.draff.objectdb;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -8,35 +8,41 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.Callable;
 import com.google.common.collect.ImmutableMap;
 import static org.junit.Assert.*;
-import com.google.api.services.datastore.DatastoreV1.*;
-import com.google.api.services.datastore.DatastoreV1.Key.PathElement;
 
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Map;
-import java.util.HashMap;
 
-import com.google.api.services.datastore.DatastoreV1.*;
-import com.google.api.services.datastore.client.Datastore;
-import com.google.api.services.datastore.client.DatastoreException;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
-import java.util.function.BooleanSupplier;
-import java.util.stream.Collectors;
-
-import static com.google.api.services.datastore.client.DatastoreHelper.*;
 
 /**
  * Created by dave on 1/3/16.
  */
+
+class User {
+  long id;
+  long depthGoal;
+}
+
+class Follower {
+  long userId;
+  long followerId;
+  public String id() {
+    return userId + ":" + followerId;
+  }
+}
+
+class FollowersCursor {
+  long id;
+  long cursor;
+}
+
 public class DatastoreDbTest {
   private DatastoreDb db;
 
   @Before
   public void setup() {
     db = new DatastoreDb(TestDatastore.get());
-    TestDatastore.clean();
+    TestDatastore.clean(User.class, Follower.class, FollowersCursor.class);
   }
 
   @Test

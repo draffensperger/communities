@@ -1,4 +1,4 @@
-package org.draff;
+package org.draff.objectdb;
 
 import java.util.Map;
 import java.util.List;
