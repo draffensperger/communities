@@ -3,6 +3,7 @@ package org.draff;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.ImmutableMap;
 import static org.junit.Assert.*;
 import com.google.api.services.datastore.DatastoreV1.*;
 import com.google.api.services.datastore.DatastoreV1.Key.PathElement;
@@ -40,8 +41,12 @@ public class DatastoreDbTest {
     cursor.cursor = 10;
 
     assertNull(db.findOne(FollowersCursor.class));
+
     db.save(cursor);
+    waitForEventualConsistency();
+
     FollowersCursor retrievedCursor = db.findOne(FollowersCursor.class);
+    assertNotNull(retrievedCursor);
 
     // Check that they are different objects, i.e. not cached or something
     assertTrue(cursor != retrievedCursor);
@@ -52,6 +57,8 @@ public class DatastoreDbTest {
     assertNotNull(db.findOne(FollowersCursor.class));
 
     db.delete(cursor);
+    waitForEventualConsistency();
+
     assertNull(db.findOne(FollowersCursor.class));
   }
 
@@ -62,27 +69,29 @@ public class DatastoreDbTest {
     follower1.followerId = 4;
 
     Follower follower2 = new Follower();
-    follower1.userId = 5;
-    follower1.followerId = 6;
+    follower2.userId = 5;
+    follower2.followerId = 6;
 
     db.save(Arrays.asList(follower1, follower2));
+    waitForEventualConsistency();
 
-    Map<String, Object> constraints1 = new HashMap<>();
-    constraints1.put("userId", 3);
+    Map<String, Object> constraints1 =
+        new ImmutableMap.Builder<String, Object>()
+            .put("userId", 3L).build();
     Follower found = db.findOne(Follower.class, constraints1);
     assertNotNull(found);
     assertEquals(3, found.userId);
     assertEquals(4, found.followerId);
 
-    Map<String, Object> constraints2 = new HashMap<>();
-    constraints2.put("userId", 5);
-    constraints2.put("followerId", 6);
+    Map<String, Object> constraints2 =
+        new ImmutableMap.Builder<String, Object>()
+            .put("userId", 5L).put("followerId", 6L).build();
     assertNotNull(db.findOne(Follower.class, constraints2));
 
-    Map<String, Object> constraints3 = new HashMap<>();
-    constraints2.put("userId", -5);
-    constraints2.put("followerId", 6);
-    assertNull(db.findOne(Follower.class, constraints2));
+    Map<String, Object> constraints3 =
+        new ImmutableMap.Builder<String, Object>()
+            .put("userId", -5L).put("followerId", 6L).build();
+    assertNull(db.findOne(Follower.class, constraints3));
   }
 
   @Test
@@ -93,7 +102,9 @@ public class DatastoreDbTest {
     User user2 = new User();
     user2.id = 2;
     user2.depthGoal = 1;
+
     db.save(Arrays.asList(user1, user2));
+    waitForEventualConsistency();
 
     List<User> users = db.findByIds(User.class, Arrays.asList(1, 2));
     assertEquals(2, users.size());
@@ -109,5 +120,14 @@ public class DatastoreDbTest {
     assertEquals(2, found1.depthGoal);
     assertEquals(2, found2.id);
     assertEquals(1, found2.depthGoal);
+  }
+
+  private void waitForEventualConsistency() {
+    try {
+      Thread.sleep(500);
+    } catch(InterruptedException e) {
+      e.printStackTrace();
+      fail();
+    }
   }
 }

@@ -34,11 +34,19 @@ public class DatastoreDb {
   }
 
   public <T> T findOne(Class<T> clazz) {
-    return clazz.cast(fromEntity(util.findOne(entityKind(clazz), null), clazz));
+    return findOneByFilter(clazz, null);
   }
 
   public <T> T findOne(Class<T> clazz, Map<String, Object> fieldConstraints) {
-    return null;
+    List<Filter> filters = new ArrayList<>();
+    fieldConstraints.forEach((field, value) ->
+        filters.add(makeFilter(field, PropertyFilter.Operator.EQUAL, toValue(value)).build())
+    );
+    return findOneByFilter(clazz, makeFilter(filters).build());
+  }
+
+  private <T> T findOneByFilter(Class<T> clazz, Filter filter) {
+    return clazz.cast(fromEntity(util.findOne(entityKind(clazz), filter), clazz));
   }
 
   public <T> List<T> findByIds(Class<T> clazz, List<Object> ids) {

@@ -122,7 +122,7 @@ public class EntityMapper {
     }
   }
 
-  private static Value.Builder toValue(Object object) {
+  public static Value.Builder toValue(Object object) {
     if (object instanceof Long) {
       return makeValue((Long)object);
     } else if (object instanceof String) {
