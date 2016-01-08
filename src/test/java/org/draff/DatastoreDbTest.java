@@ -3,6 +3,9 @@ package org.draff;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.jayway.awaitility.Awaitility;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Callable;
 import com.google.common.collect.ImmutableMap;
 import static org.junit.Assert.*;
 import com.google.api.services.datastore.DatastoreV1.*;
@@ -18,6 +21,8 @@ import com.google.api.services.datastore.client.Datastore;
 import com.google.api.services.datastore.client.DatastoreException;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
 
 import static com.google.api.services.datastore.client.DatastoreHelper.*;
@@ -43,7 +48,7 @@ public class DatastoreDbTest {
     assertNull(db.findOne(FollowersCursor.class));
 
     db.save(cursor);
-    waitForEventualConsistency();
+    waitForEventualSave(FollowersCursor.class);
 
     FollowersCursor retrievedCursor = db.findOne(FollowersCursor.class);
     assertNotNull(retrievedCursor);
@@ -57,7 +62,7 @@ public class DatastoreDbTest {
     assertNotNull(db.findOne(FollowersCursor.class));
 
     db.delete(cursor);
-    waitForEventualConsistency();
+    waitOnEventualConsistency(() -> db.findOne(Follower.class) == null);
 
     assertNull(db.findOne(FollowersCursor.class));
   }
@@ -73,7 +78,7 @@ public class DatastoreDbTest {
     follower2.followerId = 6;
 
     db.save(Arrays.asList(follower1, follower2));
-    waitForEventualConsistency();
+    waitForEventualSave(Follower.class);
 
     Map<String, Object> constraints1 =
         new ImmutableMap.Builder<String, Object>()
@@ -104,7 +109,7 @@ public class DatastoreDbTest {
     user2.depthGoal = 1;
 
     db.save(Arrays.asList(user1, user2));
-    waitForEventualConsistency();
+    waitForEventualSave(User.class);
 
     List<User> users = db.findByIds(User.class, Arrays.asList(1, 2));
     assertEquals(2, users.size());
@@ -122,12 +127,11 @@ public class DatastoreDbTest {
     assertEquals(1, found2.depthGoal);
   }
 
-  private void waitForEventualConsistency() {
-    try {
-      Thread.sleep(500);
-    } catch(InterruptedException e) {
-      e.printStackTrace();
-      fail();
-    }
+  private void waitForEventualSave(Class clazz) {
+    waitOnEventualConsistency(() -> db.findOne(clazz) != null);
+  }
+
+  private void waitOnEventualConsistency(Callable<Boolean> condition) {
+    Awaitility.await().atMost(1, TimeUnit.SECONDS).until(condition);
   }
 }

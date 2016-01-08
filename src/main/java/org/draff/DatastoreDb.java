@@ -15,7 +15,7 @@ import static org.draff.EntityMapper.*;
 /**
  * Created by dave on 1/1/16.
  */
-public class DatastoreDb {
+public class DatastoreDb implements ObjectDb {
   private DatastoreUtil util;
   private Datastore datastore;
 
