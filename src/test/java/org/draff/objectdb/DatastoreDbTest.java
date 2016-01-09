@@ -21,6 +21,7 @@ import java.util.List;
 class User {
   long id;
   long depthGoal;
+  boolean followersRetrieved;
 }
 
 class Follower {
@@ -42,7 +43,7 @@ public class DatastoreDbTest {
   @Before
   public void setup() {
     db = new DatastoreDb(TestDatastore.get());
-    TestDatastore.clean(User.class, Follower.class, FollowersCursor.class);
+    TestDatastore.clean("User", "Follower", "FollowersCursor");
   }
 
   @Test
@@ -147,6 +148,29 @@ public class DatastoreDbTest {
     assertNotNull(found);
     assertEquals(8, found.id);
     assertEquals(5, found.depthGoal);
+  }
+
+  @Test
+  public void testSaveFields() {
+    User user1 = new User();
+    user1.id = 7;
+    user1.depthGoal = 2;
+    user1.followersRetrieved = false;
+
+    User user2 = new User();
+    user2.id = 7;
+    user2.depthGoal = 1;
+    user2.followersRetrieved = true;
+
+    db.saveFields(user1, "depthGoal");
+    db.saveFields(user2, "followersRetrieved");
+    waitForEventualSave(User.class);
+
+    User found = db.findById(User.class, 7L);
+    assertNotNull(found);
+    assertEquals(found.id, 7);
+    assertEquals(2, found.depthGoal);
+    assertEquals(true, found.followersRetrieved);
   }
 
   private void waitForEventualSave(Class clazz) {

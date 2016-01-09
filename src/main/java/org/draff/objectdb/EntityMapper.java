@@ -5,6 +5,8 @@ import com.google.api.services.datastore.DatastoreV1.*;
 import static com.google.api.services.datastore.client.DatastoreHelper.*;
 import java.lang.reflect.*;
 import static java.util.Arrays.*;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.Date;
 import java.util.stream.Collectors;
@@ -22,12 +24,13 @@ public class EntityMapper {
       Double.class
   );
 
-  public static Entity toEntity(Object object) {
+  public static Entity toEntity(Object object, String... onlyFields) {
     if (object == null)  { return null; }
     Entity.Builder builder = Entity.newBuilder();
     setEntityKey(builder, object);
 
-    propertyFields(object).forEach(field -> setPropertyFromObject(builder, field, object));
+    propertyFields(object, onlyFields)
+        .forEach(field -> setPropertyFromObject(builder, field, object));
     return builder.build();
   }
 
@@ -91,9 +94,10 @@ public class EntityMapper {
     }
   }
 
-  private static List<Field> propertyFields(Object object) {
+  private static List<Field> propertyFields(Object object, String... onlyFields) {
     return asList(object.getClass().getDeclaredFields()).stream().filter(
-        f -> f.getName() != "id" && DATASTORE_TYPES.contains(f.getType())
+        f -> f.getName() != "id" && DATASTORE_TYPES.contains(f.getType()) &&
+            (onlyFields.length == 0 || Arrays.asList(onlyFields).contains(f))
     ).collect(Collectors.toList());
   }
 
@@ -107,7 +111,9 @@ public class EntityMapper {
 
   private static void setField(Object object, Field field, Object value) {
     try {
-      field.set(object, value);
+      if (value != null) {
+        field.set(object, value);
+      }
     } catch (IllegalAccessException e) {
       e.printStackTrace();
     }
@@ -140,7 +146,9 @@ public class EntityMapper {
   }
 
   private static Object fromValue(Value value) {
-    if (value.hasIntegerValue()) {
+    if (value == null) {
+      return null;
+    } else if (value.hasIntegerValue()) {
       return value.getIntegerValue();
     } else if (value.hasStringValue()) {
       return value.getStringValue();

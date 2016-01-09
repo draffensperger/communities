@@ -25,11 +25,20 @@ public class DatastoreDb implements ObjectDb {
   }
 
   public void save(Object object) {
-    util.saveUpsert(toEntity(object));
+    saveFields(object);
   }
 
   public void save(List<Object> objects) {
-    List<Entity> entities = objects.stream().map(o -> toEntity(o)).collect(Collectors.toList());
+    saveFields(objects);
+  }
+
+  public void saveFields(Object object, String... fields) {
+    util.saveUpsert(toEntity(object, fields));
+  }
+
+  public void saveFields(List<Object> objects, String... fields) {
+    List<Entity> entities = objects.stream()
+        .map(o -> toEntity(o, fields)).collect(Collectors.toList());
     util.saveUpserts(entities);
   }
 
@@ -58,9 +67,18 @@ public class DatastoreDb implements ObjectDb {
         .collect(Collectors.toList());
   }
 
-  public <T> T findById(Class<T> clazz, Object id) {
+  public <T> T findById(Class<T> clazz, long id) {
+    return findByIdObject(clazz, id);
+  }
+
+  public <T> T findById(Class<T> clazz, String id) {
+    return findByIdObject(clazz, id);
+  }
+
+  private <T> T findByIdObject(Class<T> clazz, Object id) {
     return fromEntity(util.findById(makeKey(entityKind(clazz), id).build()), clazz);
   }
+
 
   public void delete(Object object) {
     util.saveDelete(makeKey(entityKind(object.getClass()), getObjectId(object)));

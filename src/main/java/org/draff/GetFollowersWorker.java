@@ -28,7 +28,7 @@ public class GetFollowersWorker implements Runnable {
   }
 
   public void run() {
-    User user = nextUserToGetFollowers();
+    UserTracker user = nextUserToGetFollowers();
     while(!shouldStopAfterNextGet && user != null) {
       getFollowersBatch(user);
       try {
@@ -40,7 +40,7 @@ public class GetFollowersWorker implements Runnable {
     }
   }
 
-  private void getFollowersBatch(User user) {
+  private void getFollowersBatch(UserTracker user) {
     try {
       IDs ids = friendsFollowers.getFollowersIDs(user.id, user.followersCursor);
       saveFollowers(user, ids.getIDs());
@@ -56,8 +56,8 @@ public class GetFollowersWorker implements Runnable {
     }
   }
 
-  private User nextUserToGetFollowers() {
-    User user = userForDepthAndGoal(1, 0);
+  private UserTracker nextUserToGetFollowers() {
+    UserTracker user = userForDepthAndGoal(1, 0);
     if (user != null)  {
       return user;
     }
@@ -70,15 +70,15 @@ public class GetFollowersWorker implements Runnable {
     return userForDepthAndGoal(2, 1);
   }
 
-  private User userForDepthAndGoal(long followerDepthGoal, long followerDepth) {
+  private UserTracker userForDepthAndGoal(long followerDepthGoal, long followerDepth) {
     Map<String, Object> constraints = new ImmutableMap.Builder<String, Object>()
         .put("followerDepthGoal", followerDepthGoal)
         .put("followerDepth", followerDepth)
         .build();
-    return db.findOne(User.class, constraints);
+    return db.findOne(UserTracker.class, constraints);
   }
 
-  private void saveFollowers(User user, long[] followerIds) {
+  private void saveFollowers(UserTracker user, long[] followerIds) {
     List<Follower> followers = new ArrayList<>();
     for (long followerId : followerIds) {
       Follower follower = new Follower();
@@ -94,9 +94,9 @@ public class GetFollowersWorker implements Runnable {
   }
 
   private void saveUsersFromFollowers(List<Follower> followers) {
-    List<Long> userIds = followers.stream().map(
+    List<Object> userIds = followers.stream().map(
         follower -> follower.userId).collect(Collectors.toList());
-    List<User> existingUsers = db.findByIds(User.class, userIds);
+    List<UserTracker> existingUsers = db.findByIds(UserTracker.class, userIds);
     // think about this and come back to it - enqueing users based on followers...
   }
 }
