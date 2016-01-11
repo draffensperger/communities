@@ -1,18 +1,22 @@
 package org.draff.objectdb;
 
+import com.google.common.collect.ImmutableMap;
+
+import org.draff.support.TestDatastore;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.jayway.awaitility.Awaitility;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.Callable;
-import com.google.common.collect.ImmutableMap;
-import static org.junit.Assert.*;
-
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
-import java.util.List;
+import static org.draff.support.EventualConsistencyHelper.waitForEventualSave;
+import static org.draff.support.EventualConsistencyHelper.waitForEventualDelete;
+import static org.draff.support.EventualConsistencyHelper.waitOnEventualConsistency;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by dave on 1/3/16.
@@ -43,7 +47,7 @@ public class DatastoreDbTest {
   @Before
   public void setup() {
     db = new DatastoreDb(TestDatastore.get());
-    TestDatastore.clean("User", "Follower", "FollowersCursor");
+    TestDatastore.clean();
   }
 
   @Test
@@ -69,7 +73,7 @@ public class DatastoreDbTest {
     assertNotNull(db.findOne(FollowersCursor.class));
 
     db.delete(cursor);
-    waitOnEventualConsistency(() -> db.findOne(Follower.class) == null);
+    waitForEventualDelete(Follower.class);
 
     assertNull(db.findOne(FollowersCursor.class));
   }
@@ -84,7 +88,7 @@ public class DatastoreDbTest {
     follower2.userId = 5;
     follower2.followerId = 6;
 
-    db.save(Arrays.asList(follower1, follower2));
+    db.saveAll(Arrays.asList(follower1, follower2));
     waitForEventualSave(Follower.class);
 
     Map<String, Object> constraints1 =
@@ -115,7 +119,7 @@ public class DatastoreDbTest {
     user2.id = 2;
     user2.depthGoal = 1;
 
-    db.save(Arrays.asList(user1, user2));
+    db.saveAll(Arrays.asList(user1, user2));
     waitForEventualSave(User.class);
 
     List<User> users = db.findByIds(User.class, Arrays.asList(1, 2));
@@ -148,36 +152,5 @@ public class DatastoreDbTest {
     assertNotNull(found);
     assertEquals(8, found.id);
     assertEquals(5, found.depthGoal);
-  }
-
-  @Test
-  public void testSaveFields() {
-    User user1 = new User();
-    user1.id = 7;
-    user1.depthGoal = 2;
-    user1.followersRetrieved = false;
-
-    User user2 = new User();
-    user2.id = 7;
-    user2.depthGoal = 1;
-    user2.followersRetrieved = true;
-
-    db.saveFields(user1, "depthGoal");
-    db.saveFields(user2, "followersRetrieved");
-    waitForEventualSave(User.class);
-
-    User found = db.findById(User.class, 7L);
-    assertNotNull(found);
-    assertEquals(found.id, 7);
-    assertEquals(2, found.depthGoal);
-    assertEquals(true, found.followersRetrieved);
-  }
-
-  private void waitForEventualSave(Class clazz) {
-    waitOnEventualConsistency(() -> db.findOne(clazz) != null);
-  }
-
-  private void waitOnEventualConsistency(Callable<Boolean> condition) {
-    Awaitility.await().atMost(1, TimeUnit.SECONDS).until(condition);
   }
 }

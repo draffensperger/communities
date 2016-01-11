@@ -1,5 +1,7 @@
 package org.draff;
 
+import org.draff.models.Follower;
+import org.draff.models.UserTracker;
 import org.draff.objectdb.*;
 import twitter4j.*;
 import twitter4j.api.FriendsFollowersResources;

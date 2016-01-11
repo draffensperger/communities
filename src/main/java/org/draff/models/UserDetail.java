@@ -1,53 +1,55 @@
-package org.draff;
+package org.draff.models;
 
 import java.util.Date;
 
 /**
  * Created by dave on 1/7/16.
  */
-public class UserDetails {
-  long id;
-  long retrievedAt;
-  String screenName;
-  String url;
-  String location;
-  String description;
+public class UserDetail {
+  public long id;
+  public long retrievedAt;
+  public String screenName;
+  public String url;
+  public String location;
+  public String description;
+  public long statusesCount;
+  public long listedCount;
+  public long followersCount;
+  public long favouritesCount;
+  public long utcOffset;
+  public long friendsCount;
+  public Date createdAt;
+  public String timeZone;
+  public String lang;
+  public boolean isGeoEnabled;
+  public boolean isVerified;
+  public boolean isTranslator;
+  public boolean isContributorsEnabled;
+  public boolean isProtected;
+  public String profileImageURL;
+  public String profileBackgroundColor;
+  public String profileTextColor;
+  public String profileLinkColor;
+  public String profileSidebarFillColor;
+  public String profileSidebarBorderColor;
+  public boolean isProfileUseBackgroundImage;
+  public boolean isDefaultProfile;
+  public boolean isShowAllInlineMedia;
+  public boolean isFollowRequestSent;
+  public boolean isDefaultProfileImage;
+  public String profileBackgroundImageURL;
+  public String profileBannerURL;
+  public String profileBannerRetinaURL;
+  public String profileBannerIPadURL;
+  public String profileBannerIPadRetinaURL;
+  public String profileBannerMobileURL;
+  public String profileBannerMobileRetinaURL;
+  public boolean isProfileBackgroundTiled;
 
-  long statusesCount;
-  long listedCount;
-  long followersCount;
-  long favouritesCount;
-  long utcOffset;
-  long friendsCount;
-
-  Date createdAt;
-  String timeZone;
-  String lang;
-  boolean isGeoEnabled;
-  boolean isVerified;
-  boolean isTranslator;
-  boolean isContributorsEnabled;
-  boolean isProtected;
-
-  String profileImageURL;
-  String profileBackgroundColor;
-  String profileTextColor;
-  String profileLinkColor;
-  String profileSidebarFillColor;
-  String profileSidebarBorderColor;
-  boolean isProfileUseBackgroundImage;
-  boolean isDefaultProfile;
-  boolean isShowAllInlineMedia;
-  boolean isFollowRequestSent;
-  boolean isDefaultProfileImage;
-  String profileBackgroundImageURL;
-  String profileBannerURL;
-  String profileBannerRetinaURL;
-  String profileBannerIPadURL;
-  String profileBannerIPadRetinaURL;
-  String profileBannerMobileURL;
-  String profileBannerMobileRetinaURL;
-  boolean isProfileBackgroundTiled;
+  public UserDetail() {}
+  public UserDetail(twitter4j.User user) {
+    setFieldsFromTwitterUser(user);
+  }
 
   public void setFieldsFromTwitterUser(twitter4j.User u) {
     retrievedAt = System.currentTimeMillis();

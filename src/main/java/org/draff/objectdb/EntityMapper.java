@@ -1,15 +1,21 @@
 package org.draff.objectdb;
 
-import com.google.api.services.datastore.DatastoreV1.*;
+import com.google.api.services.datastore.DatastoreV1.Entity;
+import com.google.api.services.datastore.DatastoreV1.Key;
+import com.google.api.services.datastore.DatastoreV1.Value;
 
-import static com.google.api.services.datastore.client.DatastoreHelper.*;
-import java.lang.reflect.*;
-import static java.util.Arrays.*;
-
-import java.util.Arrays;
-import java.util.List;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Date;
+import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.google.api.services.datastore.client.DatastoreHelper.getPropertyMap;
+import static com.google.api.services.datastore.client.DatastoreHelper.makeKey;
+import static com.google.api.services.datastore.client.DatastoreHelper.makeProperty;
+import static com.google.api.services.datastore.client.DatastoreHelper.makeValue;
+import static java.util.Arrays.asList;
 
 /**
  * This class provides a simple way to map between a plain-old-Java-object and a Datastore Entity
@@ -24,13 +30,12 @@ public class EntityMapper {
       Double.class
   );
 
-  public static Entity toEntity(Object object, String... onlyFields) {
+  public static Entity toEntity(Object object) {
     if (object == null)  { return null; }
     Entity.Builder builder = Entity.newBuilder();
     setEntityKey(builder, object);
 
-    propertyFields(object, onlyFields)
-        .forEach(field -> setPropertyFromObject(builder, field, object));
+    propertyFields(object).forEach(field -> setPropertyFromObject(builder, field, object));
     return builder.build();
   }
 
@@ -94,15 +99,17 @@ public class EntityMapper {
     }
   }
 
-  private static List<Field> propertyFields(Object object, String... onlyFields) {
+  private static List<Field> propertyFields(Object object) {
     return asList(object.getClass().getDeclaredFields()).stream().filter(
-        f -> f.getName() != "id" && DATASTORE_TYPES.contains(f.getType()) &&
-            (onlyFields.length == 0 || Arrays.asList(onlyFields).contains(f))
+        f -> f.getName() != "id" && DATASTORE_TYPES.contains(f.getType())
     ).collect(Collectors.toList());
   }
 
   private static void setPropertyFromObject(Entity.Builder builder, Field field, Object object) {
-    builder.addProperty(makeProperty(field.getName(), toValue(getField(object, field))));
+    Object fieldVal = getField(object, field);
+    if (fieldVal != null) {
+      builder.addProperty(makeProperty(field.getName(), toValue(fieldVal)));
+    }
   }
 
   private static void setFieldFromEntity(Object object, Field field, Entity entity) {

@@ -1,16 +1,26 @@
-package org.draff.objectdb;
+package org.draff.support;
 
-import com.google.api.services.datastore.client.*;
+import com.google.api.services.datastore.DatastoreV1.CommitRequest;
+import com.google.api.services.datastore.DatastoreV1.EntityResult;
+import com.google.api.services.datastore.DatastoreV1.Mutation;
+import com.google.api.services.datastore.DatastoreV1.Query;
+import com.google.api.services.datastore.DatastoreV1.RunQueryRequest;
+import com.google.api.services.datastore.DatastoreV1.RunQueryResponse;
+import com.google.api.services.datastore.client.Datastore;
+import com.google.api.services.datastore.client.DatastoreException;
+import com.google.api.services.datastore.client.DatastoreFactory;
+import com.google.api.services.datastore.client.DatastoreHelper;
+import com.google.api.services.datastore.client.DatastoreOptions;
+
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.Arrays;
-import com.google.api.services.datastore.DatastoreV1.*;
 import java.util.List;
 /**
  * Created by dave on 1/3/16.
  */
 public class TestDatastore {
   private static Datastore datastore = null;
+  private static int CLEAN_BATCH_SIZE = 100;
 
   public static Datastore get() {
     if (datastore != null) {
@@ -21,23 +31,19 @@ public class TestDatastore {
     return datastore;
   }
 
-  public static void clean(String... entityKinds) {
-    Arrays.asList(entityKinds).forEach(kind -> deleteEntities(kind));
-  }
-
-  private static void deleteEntities(String kind) {
-    List<EntityResult> results = findBatch(kind);
+  public static void clean() {
+    List<EntityResult> results = findBatch();
     while(!results.isEmpty()) {
       Mutation.Builder mutation = Mutation.newBuilder();
       results.forEach(r -> mutation.addDelete(r.getEntity().getKey()));
       saveMutation(mutation);
-      results = findBatch(kind);
+      results = findBatch();
     }
   }
 
-  private static List<EntityResult> findBatch(String kind) {
+  private static List<EntityResult> findBatch() {
     Query.Builder q = Query.newBuilder();
-    q.addKindBuilder().setName(kind);
+    q.setLimit(CLEAN_BATCH_SIZE);
     RunQueryRequest request = RunQueryRequest.newBuilder().setQuery(q.build()).build();
     try {
       RunQueryResponse response = datastore.runQuery(request);

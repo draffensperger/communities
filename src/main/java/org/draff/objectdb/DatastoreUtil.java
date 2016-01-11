@@ -4,6 +4,7 @@ import com.google.api.services.datastore.DatastoreV1.*;
 import com.google.api.services.datastore.client.Datastore;
 import com.google.api.services.datastore.client.DatastoreException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by dave on 1/3/16.
@@ -32,6 +33,12 @@ public class DatastoreUtil {
     saveMutation(mutation);
   }
 
+  public void saveDeletes(List<Key.Builder> keys) {
+    Mutation.Builder mutation = Mutation.newBuilder();
+    keys.forEach(key -> mutation.addDelete(key));
+    saveMutation(mutation);
+  }
+
   public void saveMutation(Mutation.Builder mutation) {
     CommitRequest request = CommitRequest.newBuilder()
         .setMode(CommitRequest.Mode.NON_TRANSACTIONAL)
@@ -45,22 +52,22 @@ public class DatastoreUtil {
     }
   }
 
-  public Entity findOne(String kind, Filter filter) {
+  public List<Entity> find(String kind, Filter filter, int limit) {
     Query.Builder q = Query.newBuilder();
     q.addKindBuilder().setName(kind);
     if (filter != null) {
       q.setFilter(filter);
     }
-    q.setLimit(1);
+    q.setLimit(limit);
     RunQueryRequest request = RunQueryRequest.newBuilder().setQuery(q.build()).build();
-    return firstResult(request);
+    return results(request);
   }
 
-  public Entity firstResult(RunQueryRequest request) {
+  private List<Entity> results(RunQueryRequest request) {
     try {
       RunQueryResponse response = datastore.runQuery(request);
-      List<EntityResult> results = response.getBatch().getEntityResultList();
-      return results.isEmpty() ? null : results.get(0).getEntity();
+      return response.getBatch().getEntityResultList().stream()
+          .map(r -> r.getEntity()).collect(Collectors.toList());
     } catch (DatastoreException e) {
       e.printStackTrace();
       return null;
