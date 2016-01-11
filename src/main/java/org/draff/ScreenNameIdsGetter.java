@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 /**
  * Created by dave on 1/9/16.
  */
-public class ScreenNameIdsGetter implements Runnable {
+public class ScreenNameIdsGetter {
   private ObjectDb db;
   private UsersResources twitterUsers;
   private static final int BATCH_SIZE = 100;
@@ -28,11 +28,10 @@ public class ScreenNameIdsGetter implements Runnable {
     this.twitterUsers = users;
   }
 
-  public void run() {
+  public void runBatch() {
     List<ScreenNameTracker> trackers = db.find(ScreenNameTracker.class, BATCH_SIZE);
-    while(!trackers.isEmpty()) {
+    if(!trackers.isEmpty()) {
       getUserIds(trackers);
-      trackers = db.find(ScreenNameTracker.class, BATCH_SIZE);
     }
   }
 
@@ -73,13 +72,16 @@ public class ScreenNameIdsGetter implements Runnable {
     );
   }
 
-  private void updateFollowersTracker(long userId, long minDepthGoal) {
-    FollowersTracker tracker = db.findById(FollowersTracker.class, userId);
-    if (tracker == null) {
-      tracker = new FollowersTracker();
-      tracker.id = userId;
-    }
-    tracker.depthGoal = Math.max(tracker.depthGoal, minDepthGoal);
-    db.save(tracker);
+  private void updateFollowersTracker(long userId, long depthGoal) {
+    db.createOrUpdate(FollowersTracker.class, userId, tracker -> {
+      if (depthGoal >= 1) {
+        tracker.shouldRetrieveFollowers = true;
+        tracker.shouldRetrieveFriends = true;
+      }
+      if (depthGoal >= 2) {
+        tracker.shouldRetrieveLevel2Followers = true;
+        tracker.shouldRetrieveLevel2Friends = true;
+      }
+    });
   }
 }

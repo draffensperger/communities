@@ -5,6 +5,6 @@ package org.draff.objectdb;
  */
 @FunctionalInterface
 public interface ObjectUpdater<T> {
-  T update(T object);
+   void update(T object);
 }
 

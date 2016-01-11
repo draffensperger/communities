@@ -113,4 +113,21 @@ public class DatastoreDb implements ObjectDb {
   private Key.Builder objectKey(Object object) {
     return makeKey(entityKind(object.getClass()), getObjectId(object));
   }
+
+
+  public <T> void createOrUpdate(Class<T> clazz, long id, ObjectUpdater<T> updater) {
+    T object = clazz.cast(findById(clazz, id));
+    if (object == null) {
+      try {
+        object = clazz.newInstance();
+      } catch (InstantiationException|IllegalAccessException e) {
+        e.printStackTrace();
+        return;
+      }
+      EntityMapper.setObjectId(object, id);
+    }
+
+    updater.update(object);
+    save(object);
+  }
 }

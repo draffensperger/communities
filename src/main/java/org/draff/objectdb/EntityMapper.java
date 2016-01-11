@@ -42,7 +42,7 @@ public class EntityMapper {
   public static <T> T fromEntity(Entity entity, Class<T> clazz) {
     if (entity == null)  { return null; }
     Object object = newInstance(clazz);
-    setObjectId(object, entity);
+    setObjectIdFromEntity(object, entity);
 
     propertyFields(object).forEach(field -> setFieldFromEntity(object, field, entity));
     return clazz.cast(object);
@@ -65,14 +65,18 @@ public class EntityMapper {
     builder.setKey(makeKey(entityKind(object.getClass()), getObjectId(object)));
   }
 
-  private static void setObjectId(Object object, Entity entity) {
+  private static void setObjectIdFromEntity(Object object, Entity entity) {
+    setObjectId(object, getEntityId(entity));
+  }
+
+  public static void setObjectId(Object object, Object id) {
     Field idField;
     try {
       idField = object.getClass().getDeclaredField("id");
     } catch(NoSuchFieldException e) {
       return;
     }
-    setField(object, idField, getEntityId(entity));
+    setField(object, idField, id);
   }
 
   public static Object getObjectId(Object object) {

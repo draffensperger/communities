@@ -12,7 +12,6 @@ import java.util.Map;
 
 import static org.draff.support.EventualConsistencyHelper.waitForEventualSave;
 import static org.draff.support.EventualConsistencyHelper.waitForEventualDelete;
-import static org.draff.support.EventualConsistencyHelper.waitOnEventualConsistency;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;

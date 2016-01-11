@@ -19,4 +19,5 @@ public interface ObjectDb {
   <T> T findById(Class<T> clazz, String id);
   void delete(Object object);
   void deleteAll(List<?> object);
+  <T> void createOrUpdate(Class<T> clazz, long id, ObjectUpdater<T> updater);
 }
