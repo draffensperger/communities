@@ -21,7 +21,7 @@ import java.util.Properties;
 public class Main {
   public static void main(String[] args) {
     setupLogger();
-    //GetFollowersWorker worker = new GetFollowersWorker(objectDb(), twitter());
+    //FollowersRetriever worker = new FollowersRetriever(objectDb(), twitter());
     //worker.run();
   }
 

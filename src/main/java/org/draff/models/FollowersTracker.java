@@ -14,4 +14,7 @@ public class FollowersTracker {
   public boolean friendsRetrieved;
   public boolean level2FollowersRetrieved;
   public boolean level2FriendsRetrieved;
+
+  public long followersCursor;
+  public long friendsCursor;
 }

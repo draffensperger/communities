@@ -32,10 +32,12 @@ public class DatastoreDb implements ObjectDb {
     this.datastore = datastore;
   }
 
+  @Override
   public void save(Object object) {
     util.saveUpsert(toEntity(object));
   }
 
+  @Override
   public void saveAll(List<? extends Object> objects) {
     List<Entity> entities = objects.stream()
         .map(o -> toEntity(o)).collect(Collectors.toList());
@@ -78,12 +80,14 @@ public class DatastoreDb implements ObjectDb {
     return fromEntities(clazz, util.find(entityKind(clazz), filter, limit));
   }
 
+  @Override
   public <T> List<T> findByIds(Class<T> clazz, Collection<Long> ids) {
     List<Key> keys = ids.stream().map(id -> makeKey(entityKind(clazz), id).build())
         .collect(Collectors.toList());
     return fromEntities(clazz, util.findByIds(keys));
   }
 
+  @Override
   public <T> List<T> findOrderedById(Class<T> clazz, int limit, long minId) {
     return fromEntities(clazz, util.findOrderedById(entityKind(clazz), limit, minId));
   }
@@ -98,10 +102,6 @@ public class DatastoreDb implements ObjectDb {
     return findByIdObject(clazz, id);
   }
 
-  @Override
-  public <T> T findById(Class<T> clazz, String id) {
-    return findByIdObject(clazz, id);
-  }
 
   private <T> T findByIdObject(Class<T> clazz, Object id) {
     return fromEntity(util.findById(makeKey(entityKind(clazz), id).build()), clazz);
@@ -126,6 +126,23 @@ public class DatastoreDb implements ObjectDb {
 
   public <T> void createOrUpdate(Class<T> clazz, long id, ObjectUpdater<T> updater) {
     T object = clazz.cast(findById(clazz, id));
+    if (object == null) {
+      try {
+        object = clazz.newInstance();
+      } catch (InstantiationException|IllegalAccessException e) {
+        e.printStackTrace();
+        return;
+      }
+      EntityMapper.setObjectId(object, id);
+    }
+
+    updater.update(object);
+    save(object);
+  }
+
+  public <T> void createOrUpdate(Class<T> clazz, List<Long> ids, ObjectUpdater<T> updater) {
+    List<T> objects = findByIds(clazz, ids);
+    // for each id, either give the updater the existing object or a new one set with that id.
     if (object == null) {
       try {
         object = clazz.newInstance();
