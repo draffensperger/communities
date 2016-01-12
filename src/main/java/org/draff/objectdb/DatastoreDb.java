@@ -7,6 +7,7 @@ import com.google.api.services.datastore.DatastoreV1.PropertyFilter;
 import com.google.api.services.datastore.client.Datastore;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -74,19 +75,23 @@ public class DatastoreDb implements ObjectDb {
   }
 
   private <T> List<T> findByFilter(Class<T> clazz, Filter filter, int limit) {
-    return util.find(entityKind(clazz), filter, limit).stream()
-        .map(entity -> clazz.cast(fromEntity(entity, clazz))).collect(Collectors.toList());
+    return fromEntities(clazz, util.find(entityKind(clazz), filter, limit));
   }
 
-  public <T> List<T> findByIds(Class<T> clazz, List<Object> ids) {
+  public <T> List<T> findByIds(Class<T> clazz, Collection<Long> ids) {
     List<Key> keys = ids.stream().map(id -> makeKey(entityKind(clazz), id).build())
         .collect(Collectors.toList());
-
-    return util.findByIds(keys).stream()
-        .map(entityResult -> fromEntity(entityResult.getEntity(), clazz))
-        .collect(Collectors.toList());
+    return fromEntities(clazz, util.findByIds(keys));
   }
 
+  public <T> List<T> findOrderedById(Class<T> clazz, int limit, long minId) {
+    return fromEntities(clazz, util.findOrderedById(entityKind(clazz), limit, minId));
+  }
+
+  private <T> List<T> fromEntities(Class<T> clazz, Collection<Entity> entities) {
+    return entities.stream()
+        .map(entity -> clazz.cast(fromEntity(entity, clazz))).collect(Collectors.toList());
+  }
 
   @Override
   public <T> T findById(Class<T> clazz, long id) {
@@ -110,10 +115,14 @@ public class DatastoreDb implements ObjectDb {
     util.saveDeletes(objects.stream().map(o -> objectKey(o)).collect(Collectors.toList()));
   }
 
+  public void deleteAllByIds(Class clazz, Collection<Long> ids) {
+    String kind = entityKind(clazz);
+    util.saveDeletes(ids.stream().map(id -> makeKey(kind, id)).collect(Collectors.toList()));
+  }
+
   private Key.Builder objectKey(Object object) {
     return makeKey(entityKind(object.getClass()), getObjectId(object));
   }
-
 
   public <T> void createOrUpdate(Class<T> clazz, long id, ObjectUpdater<T> updater) {
     T object = clazz.cast(findById(clazz, id));

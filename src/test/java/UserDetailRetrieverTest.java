@@ -1,7 +1,8 @@
-import org.draff.ScreenNameIdsGetter;
+import org.draff.UserDetailRetriever;
+import org.draff.models.FollowersGoal;
 import org.draff.models.FollowersTracker;
-import org.draff.models.ScreenNameTracker;
 import org.draff.models.UserDetail;
+import org.draff.models.UserDetailRequest;
 import org.draff.objectdb.DatastoreDb;
 import org.draff.support.TestDatastore;
 import org.junit.Before;
@@ -19,11 +20,11 @@ import java.util.List;
 
 import static org.draff.support.EventualConsistencyHelper.waitForEventualDelete;
 import static org.draff.support.EventualConsistencyHelper.waitForEventualSave;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
 import static org.mockito.AdditionalAnswers.delegatesTo;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -31,7 +32,7 @@ import static org.mockito.Mockito.when;
 /**
  * Created by dave on 1/9/16.
  */
-public class ScreenNameIdsGetterTest {
+public class UserDetailRetrieverTest {
   private DatastoreDb db;
 
   @Before
@@ -41,15 +42,15 @@ public class ScreenNameIdsGetterTest {
   }
 
   @Test
-  public void testRun() throws TwitterException {
-    ScreenNameTracker tracker1 = new ScreenNameTracker();
-    tracker1.id = "user1";
-    tracker1.depthGoal = 1;
-    ScreenNameTracker tracker2 = new ScreenNameTracker();
-    tracker2.id = "user2";
-    tracker2.depthGoal = 2;
-    db.saveAll(Arrays.asList(tracker1, tracker2));
-    waitForEventualSave(ScreenNameTracker.class);
+  public void testRetrieveFollowersGoalDetails() throws TwitterException {
+    FollowersGoal goal1 = new FollowersGoal();
+    goal1.id = "user1";
+    goal1.depthGoal = 1;
+    FollowersGoal goal2 = new FollowersGoal();
+    goal2.id = "user2";
+    goal2.depthGoal = 2;
+    db.saveAll(Arrays.asList(goal1, goal2));
+    waitForEventualSave(FollowersGoal.class);
 
     FollowersTracker existingFollowersTracker = new FollowersTracker();
     existingFollowersTracker.id = 10;
@@ -57,11 +58,11 @@ public class ScreenNameIdsGetterTest {
     db.save(existingFollowersTracker);
     waitForEventualSave(FollowersTracker.class);
 
-    ScreenNameIdsGetter getter = new ScreenNameIdsGetter(db, mockUserResources());
-    getter.runBatch();
+    UserDetailRetriever retriever = new UserDetailRetriever(db, mockUserResources());
+    retriever.retrieveFollowersGoalDetails();
 
-    waitForEventualDelete(ScreenNameTracker.class);
-    assertNull(db.findOne(ScreenNameTracker.class));
+    waitForEventualDelete(FollowersGoal.class);
+    assertNull(db.findOne(FollowersGoal.class));
 
     UserDetail userDetail1 = db.findById(UserDetail.class, 10);
     assertNotNull(userDetail1);
@@ -87,6 +88,42 @@ public class ScreenNameIdsGetterTest {
     assertTrue(followersTracker2.shouldRetrieveLevel2Friends);
   }
 
+  @Test
+  public void testRetrieveUserIdsBatchDetails() throws TwitterException {
+    UserDetailRequest request1 = new UserDetailRequest();
+    request1.id = 10;
+    UserDetailRequest request2 = new UserDetailRequest();
+    request2.id = 20;
+    UserDetailRequest request3 = new UserDetailRequest();
+    request3.id = 30;
+    db.saveAll(Arrays.asList(request1, request2, request3));
+    waitForEventualSave(UserDetailRequest.class);
+
+    UserDetail existingDetail = new UserDetail();
+    existingDetail.id = 30;
+    existingDetail.screenName = "user3";
+    db.save(existingDetail);
+    waitForEventualSave(UserDetail.class);
+
+    UserDetailRetriever retriever = new UserDetailRetriever(db, mockUserResources());
+    retriever.retrieveUserIdsBatchDetails();
+
+    waitForEventualDelete(UserDetailRequest.class);
+    assertNull(db.findOne(UserDetailRequest.class));
+
+    UserDetail detail1 = db.findById(UserDetail.class, 10);
+    assertNotNull(detail1);
+    assertEquals("user1", detail1.screenName);
+
+    UserDetail detail2 = db.findById(UserDetail.class, 20);
+    assertNotNull(detail2);
+    assertEquals("user2", detail2.screenName);
+
+    UserDetail detail3 = db.findById(UserDetail.class, 30);
+    assertNotNull(detail3);
+    assertEquals("user3", detail3.screenName);
+  }
+
   private UsersResources mockUserResources() throws TwitterException {
     List<User> users = new ArrayList<>();
     String user1JSON = "{\"id\":10,\"screen_name\":\"user1\"}";
@@ -95,12 +132,12 @@ public class ScreenNameIdsGetterTest {
     users.add(TwitterObjectFactory.createUser(user2JSON));
 
     UsersResources userResources = mock(UsersResources.class);
-    String[] screenNames = {"user1", "user2"};
 
     ResponseList<User> usersResponse = mock(ResponseList.class, delegatesTo(users));
+    when(userResources.lookupUsers(new String[] {"user1", "user2"})).thenReturn(usersResponse);
+    when(userResources.lookupUsers(new long[] {10, 20})).thenReturn(usersResponse);
+    when(userResources.lookupUsers(new long[] {20, 10})).thenReturn(usersResponse);
 
-    when(userResources.lookupUsers(new String[] {"user1", "user2"}))
-        .thenReturn(usersResponse);
     return userResources;
   }
 }

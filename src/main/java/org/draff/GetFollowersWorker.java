@@ -1,20 +1,10 @@
 package org.draff;
 
-import org.draff.models.Follower;
-import org.draff.models.UserTracker;
-import org.draff.objectdb.*;
-import twitter4j.*;
-import twitter4j.api.FriendsFollowersResources;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import com.google.common.collect.ImmutableMap;
-
 /**
  * Created by dave on 1/7/16.
  */
-public class GetFollowersWorker implements Runnable {
-  private ObjectDb db;
+public class GetFollowersWorker {
+/*  private ObjectDb db;
   private Twitter twitter;
   private FriendsFollowersResources friendsFollowers;
   private boolean shouldStopAfterNextGet;
@@ -100,5 +90,5 @@ public class GetFollowersWorker implements Runnable {
         follower -> follower.userId).collect(Collectors.toList());
     List<UserTracker> existingUsers = db.findByIds(UserTracker.class, userIds);
     // think about this and come back to it - enqueing users based on followers...
-  }
+  }*/
 }

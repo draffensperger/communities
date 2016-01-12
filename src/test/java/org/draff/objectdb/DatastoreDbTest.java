@@ -121,7 +121,7 @@ public class DatastoreDbTest {
     db.saveAll(Arrays.asList(user1, user2));
     waitForEventualSave(User.class);
 
-    List<User> users = db.findByIds(User.class, Arrays.asList(1, 2));
+    List<User> users = db.findByIds(User.class, Arrays.asList(1L, 2L));
     assertEquals(2, users.size());
     User found1 = users.get(0);
     User found2 = users.get(1);

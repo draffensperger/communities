@@ -1,15 +1,19 @@
 package org.draff;
 
-import java.util.Properties;
-
-import org.draff.objectdb.*;
-import twitter4j.*;
-import org.apache.log4j.PropertyConfigurator;
 import com.google.api.services.datastore.client.Datastore;
 import com.google.api.services.datastore.client.DatastoreFactory;
 import com.google.api.services.datastore.client.DatastoreHelper;
+
+import org.apache.log4j.PropertyConfigurator;
+import org.draff.objectdb.DatastoreDb;
+import org.draff.objectdb.ObjectDb;
+
+import twitter4j.Twitter;
+import twitter4j.TwitterFactory;
+
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.Properties;
 
 /**
  * Created by dave on 1/2/16.
@@ -17,8 +21,8 @@ import java.security.GeneralSecurityException;
 public class Main {
   public static void main(String[] args) {
     setupLogger();
-    GetFollowersWorker worker = new GetFollowersWorker(objectDb(), twitter());
-    worker.run();
+    //GetFollowersWorker worker = new GetFollowersWorker(objectDb(), twitter());
+    //worker.run();
   }
 
   private static ObjectDb objectDb() {
