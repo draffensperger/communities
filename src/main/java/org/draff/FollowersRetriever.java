@@ -31,16 +31,10 @@ public class FollowersRetriever {
   }
 
   public void retrieveBatch() throws TwitterException {
-    FollowersTracker tracker = getNextTracker();
-    if (tracker.shouldRetrieveFollowers && !tracker.followersRetrieved) {
+    FollowersTracker tracker = db.findOne(FollowersTracker.class, NEEDS_FOLLOWERS);
+    if (tracker != null) {
       retrieveFollowersBatch(tracker);
-    } else if (tracker.shouldRetrieveFriends && !tracker.friendsRetrieved) {
-      retrieveFriendsBatch(tracker);
     }
-  }
-
-  private FollowersTracker getNextTracker() {
-    return db.findOne(FollowersTracker.class, NEEDS_FOLLOWERS);
   }
 
   private void retrieveFollowersBatch(FollowersTracker tracker) throws TwitterException {

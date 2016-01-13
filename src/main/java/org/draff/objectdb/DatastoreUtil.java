@@ -65,7 +65,7 @@ public class DatastoreUtil {
     try {
       datastore.commit(request);
     } catch (DatastoreException e) {
-      e.printStackTrace();
+      throw new ObjectDbException(e);
     }
   }
 
@@ -112,8 +112,7 @@ public class DatastoreUtil {
       }
       return response.getFound(0).getEntity();
     } catch(DatastoreException e) {
-      e.printStackTrace();
-      return null;
+      throw new ObjectDbException(e);
     }
   }
 

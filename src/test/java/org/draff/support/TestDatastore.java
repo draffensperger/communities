@@ -62,7 +62,7 @@ public class TestDatastore {
     try {
       datastore.commit(request);
     } catch (DatastoreException e) {
-      e.printStackTrace();
+      throw new RuntimeException(e);
     }
   }
 

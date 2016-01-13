@@ -15,6 +15,7 @@ public class FollowersTracker {
   public boolean level2FollowersRetrieved;
   public boolean level2FriendsRetrieved;
 
-  public long followersCursor;
-  public long friendsCursor;
+  // These should default to -1 for a new instance as that is the starting Twitter retrieval cursor.
+  public long followersCursor = -1L;
+  public long friendsCursor = -1L;
 }

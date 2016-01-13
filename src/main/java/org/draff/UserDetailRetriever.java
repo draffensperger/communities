@@ -34,7 +34,7 @@ public class UserDetailRetriever {
     this.twitterUsers = users;
   }
 
-  public void retrieveFollowersGoalDetails() {
+  public void retrieveFollowersGoalDetails() throws TwitterException {
     List<FollowersGoal> trackers = db.find(FollowersGoal.class, BATCH_SIZE);
     if(!trackers.isEmpty()) {
       retrieveTrackerUserIds(trackers);
@@ -91,13 +91,9 @@ public class UserDetailRetriever {
     }
   }
 
-  private void retrieveTrackerUserIds(List<FollowersGoal> trackers) {
-    try {
-      List<User> users = twitterUsers.lookupUsers(screenNames(trackers));
-      saveUsers(users, trackers);
-    } catch(TwitterException e) {
-      e.printStackTrace();
-    }
+  private void retrieveTrackerUserIds(List<FollowersGoal> trackers) throws TwitterException {
+    List<User> users = twitterUsers.lookupUsers(screenNames(trackers));
+    saveUsers(users, trackers);
   }
 
   private String[] screenNames(List<FollowersGoal> trackers) {

@@ -56,8 +56,7 @@ public class EntityMapper {
     try {
       return clazz.newInstance();
     } catch (IllegalAccessException|InstantiationException e) {
-      e.printStackTrace();
-      return null;
+      throw new ObjectDbException(e);
     }
   }
 
@@ -73,10 +72,11 @@ public class EntityMapper {
     Field idField;
     try {
       idField = object.getClass().getDeclaredField("id");
+      setField(object, idField, id);
     } catch(NoSuchFieldException e) {
-      return;
+      // It's possible that the object has an id method for an auto-generated id (e.g. Follower).
+      // So just do nothing if we can't set the id field
     }
-    setField(object, idField, id);
   }
 
   public static Object getObjectId(Object object) {
@@ -89,8 +89,7 @@ public class EntityMapper {
       Method idMethod = object.getClass().getDeclaredMethod("id", null);
       return idMethod.invoke(object);
     } catch(NoSuchMethodException|IllegalAccessException|InvocationTargetException e) {
-      e.printStackTrace();
-      return null;
+      throw new ObjectDbException(e);
     }
   }
 
@@ -126,7 +125,7 @@ public class EntityMapper {
         field.set(object, value);
       }
     } catch (IllegalAccessException e) {
-      e.printStackTrace();
+      throw new ObjectDbException(e);
     }
   }
 
@@ -134,8 +133,7 @@ public class EntityMapper {
     try {
       return field.get(object);
     } catch (IllegalAccessException e) {
-      e.printStackTrace();
-      return null;
+      throw new ObjectDbException(e);
     }
   }
 

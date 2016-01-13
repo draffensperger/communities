@@ -147,8 +147,7 @@ public class DatastoreDb implements ObjectDb {
       try {
         object = clazz.newInstance();
       } catch (InstantiationException|IllegalAccessException e) {
-        e.printStackTrace();
-        return null;
+        throw new ObjectDbException(e);
       }
       EntityMapper.setObjectId(object, id);
     }

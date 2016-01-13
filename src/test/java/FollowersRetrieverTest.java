@@ -43,8 +43,6 @@ public class FollowersRetrieverTest {
 
     waitForEventualSave(Follower.class);
 
-    System.out.println("stop");
-
     FollowersTracker updatedTracker = db.findById(FollowersTracker.class, 1L);
     assertEquals(true, updatedTracker.shouldRetrieveFollowers);
     assertEquals(false, updatedTracker.followersRetrieved);
