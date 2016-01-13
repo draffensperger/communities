@@ -21,67 +21,91 @@ public class FollowersRetriever {
   private ObjectDb db;
   private FriendsFollowersResources friendsFollowers;
 
+  private final static long TWITTER_CURSOR_START = -1L;
+
   private final static Map<String, Object> NEEDS_FOLLOWERS =
       new ImmutableMap.Builder<String, Object>().put("shouldRetrieveFollowers", true)
           .put("followersRetrieved", false).build();
+
+  private final static Map<String, Object> NEEDS_FRIENDS =
+      new ImmutableMap.Builder<String, Object>().put("shouldRetrieveFriends", true)
+          .put("friendsRetrieved", false).build();
 
   public FollowersRetriever(ObjectDb db, FriendsFollowersResources friendsFollowers) {
     this.db = db;
     this.friendsFollowers = friendsFollowers;
   }
 
-  public void retrieveBatch() throws TwitterException {
-    FollowersTracker tracker = db.findOne(FollowersTracker.class, NEEDS_FOLLOWERS);
-    if (tracker != null) {
-      retrieveFollowersBatch(tracker);
-    }
+  public void retrieveFollowersBatch() throws TwitterException {
+    retrieveBatch(false, NEEDS_FOLLOWERS);
   }
 
-  private void retrieveFollowersBatch(FollowersTracker tracker) throws TwitterException {
-    if (tracker.followersCursor == 0) {
-      tracker.followersCursor = -1;
+  public void retrieveFriendsBatch() throws TwitterException {
+    retrieveBatch(true, NEEDS_FRIENDS);
+  }
+
+  private void retrieveBatch(boolean isFriends, Map<String, Object> trackerConstraints)
+      throws TwitterException {
+    FollowersTracker tracker = db.findOne(FollowersTracker.class, trackerConstraints);
+    if (tracker == null) {
+      return;
     }
+
+    long[] friendOrFollowerIds;
+    if (isFriends) {
+      friendOrFollowerIds = retrieveFriends(tracker);
+    } else {
+      friendOrFollowerIds = retrieveFollowers(tracker);
+    }
+
+    addLevel2TrackersIfNeeded(tracker, friendOrFollowerIds);
+    db.save(tracker);
+  }
+
+  private long[] retrieveFollowers(FollowersTracker tracker) throws TwitterException {
     IDs followerIds = friendsFollowers.getFollowersIDs(tracker.id, tracker.followersCursor);
-    List<Follower> followers = new ArrayList<>();
-    for (long followerId : followerIds.getIDs()) {
-      Follower follower = new Follower();
-      follower.userId = tracker.id;
-      follower.followerId = followerId;
-      follower.retrievedAt = System.currentTimeMillis();
-      followers.add(follower);
+    saveFollowers(tracker.id, followerIds.getIDs());
+    updateFollowersCursor(tracker, followerIds);
+    return followerIds.getIDs();
+  }
+
+  private long[] retrieveFriends(FollowersTracker tracker) throws TwitterException {
+    IDs friendIds = friendsFollowers.getFriendsIDs(tracker.id, tracker.friendsCursor);
+    saveFriends(tracker.id, friendIds.getIDs());
+    updateFriendsCursor(tracker, friendIds);
+    return friendIds.getIDs();
+  }
+
+  private void saveFollowers(long userId, long[] followerIds) {
+    List<Follower> followers = new ArrayList<>(followerIds.length);
+    for (long followerId : followerIds) {
+      followers.add(new Follower(userId, followerId));
     }
     db.saveAll(followers);
+  }
+
+  private void saveFriends(long userId, long[] friendIds) {
+    List<Follower> followers = new ArrayList<>(friendIds.length);
+    for (long friendId : friendIds) {
+      followers.add(new Follower(friendId, userId));
+    }
+    db.saveAll(followers);
+  }
+
+  private void updateFollowersCursor(FollowersTracker tracker, IDs followerIds) {
     if (followerIds.hasNext()) {
       tracker.followersCursor = followerIds.getNextCursor();
     } else {
       tracker.followersRetrieved = true;
     }
-    addLevel2TrackersIfNeeded(tracker, followerIds.getIDs());
-    db.save(tracker);
   }
 
-  private void retrieveFriendsBatch(FollowersTracker tracker) throws TwitterException {
-    if (tracker.friendsCursor == 0) {
-      tracker.friendsCursor = -1;
-    }
-    IDs friends = friendsFollowers.getFriendsIDs(tracker.id, tracker.friendsCursor);
-    List<Follower> followers = new ArrayList<>();
-    long[] friendIds = friends.getIDs();
-    for (long friendId : friendIds) {
-      Follower follower = new Follower();
-      follower.userId = friendId;
-      follower.followerId = tracker.id;
-      follower.retrievedAt = System.currentTimeMillis();
-      followers.add(follower);
-    }
-    db.save(followers);
-    if (friends.hasNext()) {
-      tracker.friendsCursor = friends.getNextCursor();
+  private void updateFriendsCursor(FollowersTracker tracker, IDs friendsIds) {
+    if (friendsIds.hasNext()) {
+      tracker.friendsCursor = friendsIds.getNextCursor();
     } else {
       tracker.friendsRetrieved = true;
     }
-    addLevel2TrackersIfNeeded(tracker, friendIds);
-    db.save(tracker);
   }
 
   private void addLevel2TrackersIfNeeded(FollowersTracker tracker, long[] friendOrFollowerIds) {

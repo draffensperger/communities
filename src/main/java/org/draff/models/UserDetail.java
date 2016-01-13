@@ -9,7 +9,6 @@ public class UserDetail {
   public long id;
   public long retrievedAt;
   public String screenName;
-  public String url;
   public String location;
   public String description;
   public long statusesCount;
@@ -35,15 +34,9 @@ public class UserDetail {
   public boolean isProfileUseBackgroundImage;
   public boolean isDefaultProfile;
   public boolean isShowAllInlineMedia;
-  public boolean isFollowRequestSent;
   public boolean isDefaultProfileImage;
   public String profileBackgroundImageURL;
   public String profileBannerURL;
-  public String profileBannerRetinaURL;
-  public String profileBannerIPadURL;
-  public String profileBannerIPadRetinaURL;
-  public String profileBannerMobileURL;
-  public String profileBannerMobileRetinaURL;
   public boolean isProfileBackgroundTiled;
 
   public UserDetail() {}
@@ -56,7 +49,6 @@ public class UserDetail {
 
     id = u.getId();
     screenName = u.getScreenName();
-    url = u.getURL();
     location = u.getLocation();
     description = u.getDescription();
 
@@ -85,15 +77,9 @@ public class UserDetail {
     isProfileUseBackgroundImage = u.isProfileUseBackgroundImage();
     isDefaultProfile = u.isDefaultProfile();
     isShowAllInlineMedia = u.isShowAllInlineMedia();
-    isFollowRequestSent = u.isFollowRequestSent();
     isDefaultProfileImage = u.isDefaultProfileImage();
     profileBackgroundImageURL = u.getProfileBackgroundImageURL();
     profileBannerURL = u.getProfileBannerURL();
-    profileBannerRetinaURL = u.getProfileBannerRetinaURL();
-    profileBannerIPadURL = u.getProfileBannerIPadURL();
-    profileBannerIPadRetinaURL = u.getProfileBannerIPadRetinaURL();
-    profileBannerMobileURL = u.getProfileBannerMobileURL();
-    profileBannerMobileRetinaURL = u.getProfileBannerMobileRetinaURL();
     isProfileBackgroundTiled = u.isProfileBackgroundTiled();
   }
 }
