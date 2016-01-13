@@ -1,16 +1,18 @@
 package org.draff;
 
+import com.google.common.collect.ImmutableMap;
+
 import org.draff.models.Follower;
 import org.draff.models.FollowersTracker;
 import org.draff.objectdb.ObjectDb;
 
 import twitter4j.IDs;
-import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.api.FriendsFollowersResources;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by dave on 1/7/16.
@@ -19,9 +21,13 @@ public class FollowersRetriever {
   private ObjectDb db;
   private FriendsFollowersResources friendsFollowers;
 
-  public FollowersRetriever(ObjectDb db, Twitter twitter) {
+  private final static Map<String, Object> NEEDS_FOLLOWERS =
+      new ImmutableMap.Builder<String, Object>().put("shouldRetrieveFollowers", true)
+          .put("followersRetrieved", false).build();
+
+  public FollowersRetriever(ObjectDb db, FriendsFollowersResources friendsFollowers) {
     this.db = db;
-    this.friendsFollowers = twitter.friendsFollowers();
+    this.friendsFollowers = friendsFollowers;
   }
 
   public void retrieveBatch() throws TwitterException {
@@ -34,7 +40,7 @@ public class FollowersRetriever {
   }
 
   private FollowersTracker getNextTracker() {
-    return null;
+    return db.findOne(FollowersTracker.class, NEEDS_FOLLOWERS);
   }
 
   private void retrieveFollowersBatch(FollowersTracker tracker) throws TwitterException {
@@ -50,7 +56,7 @@ public class FollowersRetriever {
       follower.retrievedAt = System.currentTimeMillis();
       followers.add(follower);
     }
-    db.save(followers);
+    db.saveAll(followers);
     if (followerIds.hasNext()) {
       tracker.followersCursor = followerIds.getNextCursor();
     } else {

@@ -8,6 +8,7 @@ import com.google.api.services.datastore.client.Datastore;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -126,34 +127,33 @@ public class DatastoreDb implements ObjectDb {
 
   public <T> void createOrUpdate(Class<T> clazz, long id, ObjectUpdater<T> updater) {
     T object = clazz.cast(findById(clazz, id));
-    if (object == null) {
-      try {
-        object = clazz.newInstance();
-      } catch (InstantiationException|IllegalAccessException e) {
-        e.printStackTrace();
-        return;
-      }
-      EntityMapper.setObjectId(object, id);
-    }
-
-    updater.update(object);
+    object = newOrUpdatedObject(clazz, object, id, updater);
     save(object);
   }
 
   public <T> void createOrUpdate(Class<T> clazz, List<Long> ids, ObjectUpdater<T> updater) {
-    List<T> objects = findByIds(clazz, ids);
-    // for each id, either give the updater the existing object or a new one set with that id.
+    List<T> foundObjects = findByIds(clazz, ids);
+    Map<Long, T> idsToFound = new HashMap<>();
+    foundObjects.forEach(o -> idsToFound.put((Long)getObjectId(o), o));
+
+    List<T> objectsToSave = ids.stream().map(
+        id -> newOrUpdatedObject(clazz, idsToFound.get(id), id, updater)
+    ).collect(Collectors.toList());
+    saveAll(objectsToSave);
+  }
+
+  private <T> T newOrUpdatedObject(Class<T> clazz, T object, long id, ObjectUpdater<T> updater) {
     if (object == null) {
       try {
         object = clazz.newInstance();
       } catch (InstantiationException|IllegalAccessException e) {
         e.printStackTrace();
-        return;
+        return null;
       }
       EntityMapper.setObjectId(object, id);
     }
 
     updater.update(object);
-    save(object);
+    return object;
   }
 }
