@@ -29,13 +29,6 @@ public class UserDetailRetriever {
     this.twitterUsers = users;
   }
 
-  public void retrieveFollowersGoalDetails() throws TwitterException {
-    List<FollowersGoal> trackers = db.find(FollowersGoal.class, BATCH_SIZE);
-    if(!trackers.isEmpty()) {
-      retrieveTrackerUserIds(trackers);
-    }
-  }
-
   public void retrieveUserIdsBatchDetails() {
     try {
       long[] neededIds = neededUserIdsBatch();
@@ -43,7 +36,7 @@ public class UserDetailRetriever {
       saveUserDetails(users);
       db.createOrUpdate(UserDetailRequest.class, Longs.asList(neededIds),
           request -> request.detailRetrieved = true);
-    } catch(TwitterException e) {
+    } catch (TwitterException e) {
       e.printStackTrace();
     }
   }
@@ -52,7 +45,7 @@ public class UserDetailRetriever {
     List<Long> userIds = new ArrayList<>();
 
     Collection<Long> requestIds = requestIdsBatch(Long.MIN_VALUE);
-    while(!requestIds.isEmpty() && userIds.size() < BATCH_SIZE) {
+    while (!requestIds.isEmpty() && userIds.size() < BATCH_SIZE) {
       fillUpToLimit(userIds, requestIds, BATCH_SIZE);
       if (userIds.size() < BATCH_SIZE) {
         requestIds = requestIdsBatch(Collections.max(userIds) + 1);
@@ -89,49 +82,7 @@ public class UserDetailRetriever {
     }
   }
 
-  private void retrieveTrackerUserIds(List<FollowersGoal> trackers) throws TwitterException {
-    List<User> users = twitterUsers.lookupUsers(screenNames(trackers));
-    saveUsers(users, trackers);
-  }
-
-  private String[] screenNames(List<FollowersGoal> trackers) {
-    String[] screenNames = new String[trackers.size()];
-    for (int i = 0; i < trackers.size(); i++) {
-      screenNames[i] = trackers.get(i).id;
-    }
-    return screenNames;
-  }
-
-  private void saveUsers(List<User> users, List<FollowersGoal> trackers) {
-    saveUserDetails(users);
-    updateFollowersTrackers(users, trackers);
-    db.deleteAll(trackers);
-  }
-
   private void saveUserDetails(List<User> users) {
-    List<UserDetail> details = users.stream()
-        .map(user -> new UserDetail(user)).collect(Collectors.toList());
-    db.saveAll(details);
-  }
-
-  private void updateFollowersTrackers(List<User> users, List<FollowersGoal> trackers) {
-    Map<String, Long> screenNamesToIds = new HashMap<>();
-    users.forEach(u -> screenNamesToIds.put(u.getScreenName(), u.getId()));
-    trackers.forEach(tracker ->
-      updateFollowersTracker(screenNamesToIds.get(tracker.id), tracker.depthGoal)
-    );
-  }
-
-  private void updateFollowersTracker(long userId, long depthGoal) {
-    db.createOrUpdate(FollowersTracker.class, userId, tracker -> {
-      if (depthGoal >= 1) {
-        tracker.shouldRetrieveFollowers = true;
-        tracker.shouldRetrieveFriends = true;
-      }
-      if (depthGoal >= 2) {
-        tracker.shouldRetrieveLevel2Followers = true;
-        tracker.shouldRetrieveLevel2Friends = true;
-      }
-    });
+    db.saveAll(users.stream().map(u -> new UserDetail(u)).collect(Collectors.toList()));
   }
 }

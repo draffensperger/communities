@@ -1,6 +1,4 @@
 import org.draff.UserDetailRetriever;
-import org.draff.models.FollowersGoal;
-import org.draff.models.FollowersTracker;
 import org.draff.models.UserDetail;
 import org.draff.models.UserDetailRequest;
 import org.draff.objectdb.DatastoreDb;
@@ -8,26 +6,17 @@ import org.draff.support.TestDatastore;
 import org.junit.Before;
 import org.junit.Test;
 
-import twitter4j.ResponseList;
-import twitter4j.TwitterException;
-import twitter4j.TwitterObjectFactory;
-import twitter4j.User;
+import twitter4j.*;
 import twitter4j.api.UsersResources;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.draff.support.EventualConsistencyHelper.waitForEventualDelete;
 import static org.draff.support.EventualConsistencyHelper.waitForEventualSave;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.AdditionalAnswers.delegatesTo;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Created by dave on 1/9/16.
@@ -39,53 +28,6 @@ public class UserDetailRetrieverTest {
   public void setup() {
     db = new DatastoreDb(TestDatastore.get());
     TestDatastore.clean();
-  }
-
-  @Test
-  public void testRetrieveFollowersGoalDetails() throws TwitterException {
-    FollowersGoal goal1 = new FollowersGoal();
-    goal1.id = "user1";
-    goal1.depthGoal = 1;
-    FollowersGoal goal2 = new FollowersGoal();
-    goal2.id = "user2";
-    goal2.depthGoal = 2;
-    db.saveAll(Arrays.asList(goal1, goal2));
-    waitForEventualSave(FollowersGoal.class);
-
-    FollowersTracker existingFollowersTracker = new FollowersTracker();
-    existingFollowersTracker.id = 10;
-    existingFollowersTracker.friendsRetrieved = true;
-    db.save(existingFollowersTracker);
-    waitForEventualSave(FollowersTracker.class);
-
-    UserDetailRetriever retriever = new UserDetailRetriever(db, mockUserResources());
-    retriever.retrieveFollowersGoalDetails();
-
-    waitForEventualDelete(FollowersGoal.class);
-    assertNull(db.findOne(FollowersGoal.class));
-
-    UserDetail userDetail1 = db.findById(UserDetail.class, 10);
-    assertNotNull(userDetail1);
-    assertEquals("user1", userDetail1.screenName);
-
-    UserDetail userDetail2 = db.findById(UserDetail.class, 20);
-    assertNotNull(userDetail2);
-    assertEquals("user2", userDetail2.screenName);
-
-    FollowersTracker followersTracker1 = db.findById(FollowersTracker.class, 10);
-    assertNotNull(followersTracker1);
-    assertTrue(followersTracker1.shouldRetrieveFriends);
-    assertTrue(followersTracker1.shouldRetrieveFriends);
-    assertTrue(followersTracker1.friendsRetrieved);
-    assertFalse(followersTracker1.shouldRetrieveLevel2Followers);
-    assertFalse(followersTracker1.shouldRetrieveLevel2Friends);
-
-    FollowersTracker followersTracker2 = db.findById(FollowersTracker.class, 20);
-    assertNotNull(followersTracker2);
-    assertTrue(followersTracker2.shouldRetrieveFriends);
-    assertTrue(followersTracker2.shouldRetrieveFriends);
-    assertTrue(followersTracker2.shouldRetrieveLevel2Followers);
-    assertTrue(followersTracker2.shouldRetrieveLevel2Friends);
   }
 
   @Test
