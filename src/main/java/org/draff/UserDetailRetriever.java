@@ -1,24 +1,16 @@
 package org.draff;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Longs;
 
-import org.draff.models.FollowersGoal;
-import org.draff.models.FollowersTracker;
-import org.draff.models.UserDetail;
-import org.draff.models.UserDetailRequest;
+import org.draff.models.*;
 import org.draff.objectdb.ObjectDb;
 
 import twitter4j.TwitterException;
 import twitter4j.User;
 import twitter4j.api.UsersResources;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -28,6 +20,9 @@ public class UserDetailRetriever {
   private ObjectDb db;
   private UsersResources twitterUsers;
   private static final int BATCH_SIZE = 100;
+
+  private final static Map<String, Object> DETAIL_NOT_RETRIEVED =
+      new ImmutableMap.Builder<String, Object>().put("detailRetrieved", false).build();
 
   public UserDetailRetriever(ObjectDb db, UsersResources users) {
     this.db = db;
@@ -46,7 +41,8 @@ public class UserDetailRetriever {
       long[] neededIds = neededUserIdsBatch();
       List<User> users = twitterUsers.lookupUsers(neededIds);
       saveUserDetails(users);
-      db.deleteAllByIds(UserDetailRequest.class, Longs.asList(neededIds));
+      db.createOrUpdate(UserDetailRequest.class, Longs.asList(neededIds),
+          request -> request.detailRetrieved = true);
     } catch(TwitterException e) {
       e.printStackTrace();
     }
@@ -67,15 +63,17 @@ public class UserDetailRetriever {
   }
 
   private Collection<Long> requestIdsBatch(long minId) {
-    List<Long> requestIdsList = db.findOrderedById(UserDetailRequest.class, BATCH_SIZE, minId).stream()
-        .map(request -> request.id).collect(Collectors.toList());
+    List<Long> requestIdsList =
+        db.findOrderedById(UserDetailRequest.class, BATCH_SIZE, minId, DETAIL_NOT_RETRIEVED)
+            .stream().map(request -> request.id).collect(Collectors.toList());
     HashSet<Long> requestIds = new HashSet<>(requestIdsList);
 
     List<Long> existingIds = db.findByIds(UserDetail.class, requestIds).stream()
         .map(detail -> detail.id).collect(Collectors.toList());
 
-    // Since there are already UserDetail records for those request ids, just delete the requests
-    db.deleteAllByIds(UserDetailRequest.class, existingIds);
+    // Since there are already UserDetail records for those request ids, mark those as retrieved.
+    db.createOrUpdate(UserDetailRequest.class, existingIds, req -> req.detailRetrieved = true);
+
     requestIds.removeAll(existingIds);
 
     return requestIds;

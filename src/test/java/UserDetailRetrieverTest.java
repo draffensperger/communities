@@ -108,8 +108,9 @@ public class UserDetailRetrieverTest {
     UserDetailRetriever retriever = new UserDetailRetriever(db, mockUserResources());
     retriever.retrieveUserIdsBatchDetails();
 
-    waitForEventualDelete(UserDetailRequest.class);
-    assertNull(db.findOne(UserDetailRequest.class));
+    List<UserDetailRequest> requests = db.find(UserDetailRequest.class, 4);
+    assertEquals(3, requests.size());
+    requests.forEach(request -> assertTrue(request.detailRetrieved));
 
     UserDetail detail1 = db.findById(UserDetail.class, 10);
     assertNotNull(detail1);

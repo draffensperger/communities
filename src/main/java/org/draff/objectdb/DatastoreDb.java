@@ -35,6 +35,9 @@ public class DatastoreDb implements ObjectDb {
 
   @Override
   public void save(Object object) {
+    if (object instanceof List) {
+      throw new ObjectDbException("Tried to call save with a List, did you mean saveAll?");
+    }
     util.saveUpsert(toEntity(object));
   }
 
@@ -70,11 +73,18 @@ public class DatastoreDb implements ObjectDb {
   }
 
   private <T> List<T> findByConstraints(Class<T> clazz, Map<String, Object> fieldConstraints, int limit) {
+    return findByFilter(clazz, constraintsFilter(fieldConstraints), limit);
+  }
+
+  private Filter constraintsFilter(Map<String, Object> fieldConstraints) {
+    if (fieldConstraints == null) {
+      return null;
+    }
     List<Filter> filters = new ArrayList<>();
     fieldConstraints.forEach((field, value) ->
         filters.add(makeFilter(field, PropertyFilter.Operator.EQUAL, toValue(value)).build())
     );
-    return findByFilter(clazz, makeFilter(filters).build(), limit);
+    return makeFilter(filters).build();
   }
 
   private <T> List<T> findByFilter(Class<T> clazz, Filter filter, int limit) {
@@ -90,7 +100,14 @@ public class DatastoreDb implements ObjectDb {
 
   @Override
   public <T> List<T> findOrderedById(Class<T> clazz, int limit, long minId) {
-    return fromEntities(clazz, util.findOrderedById(entityKind(clazz), limit, minId));
+    return fromEntities(clazz, util.findOrderedById(entityKind(clazz), limit, minId, null));
+  }
+
+  @Override
+  public <T> List<T> findOrderedById(Class<T> clazz, int limit, long minId,
+                                     Map<String, Object> constraints) {
+    return fromEntities(clazz, util.findOrderedById(entityKind(clazz), limit, minId,
+        constraintsFilter(constraints)));
   }
 
   private <T> List<T> fromEntities(Class<T> clazz, Collection<Entity> entities) {
@@ -152,7 +169,9 @@ public class DatastoreDb implements ObjectDb {
       EntityMapper.setObjectId(object, id);
     }
 
-    updater.update(object);
+    if (updater != null) {
+      updater.update(object);
+    }
     return object;
   }
 }

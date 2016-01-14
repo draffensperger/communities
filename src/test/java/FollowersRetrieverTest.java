@@ -1,6 +1,5 @@
 import org.draff.FollowersRetriever;
-import org.draff.models.Follower;
-import org.draff.models.FollowersTracker;
+import org.draff.models.*;
 import org.draff.objectdb.DatastoreDb;
 import org.draff.support.TestDatastore;
 import org.junit.Before;
@@ -10,6 +9,7 @@ import twitter4j.IDs;
 import twitter4j.TwitterException;
 import twitter4j.api.FriendsFollowersResources;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.draff.support.EventualConsistencyHelper.waitForEventualSave;
@@ -95,6 +95,70 @@ public class FollowersRetrieverTest {
     assertEquals(5L, follower1.userId);
     assertEquals(1L, follower1.followerId);
     assertThat(follower1.retrievedAt, greaterThan(0L));
+  }
+
+  @Test
+  public void testAddsLevel2Trackers() throws TwitterException {
+    FollowersTracker existingTracker1 = new FollowersTracker();
+    existingTracker1.id = 1L;
+    existingTracker1.shouldRetrieveFollowers = true;
+    existingTracker1.shouldRetrieveLevel2Followers = true;
+    existingTracker1.shouldRetrieveLevel2Friends = true;
+
+    FollowersTracker existingTracker2 = new FollowersTracker();
+    existingTracker2.id = 2L;
+    existingTracker2.shouldRetrieveLevel2Friends = true;
+
+    db.saveAll(Arrays.asList(existingTracker1, existingTracker2));
+    waitForEventualSave(FollowersTracker.class);
+
+    UserDetailRequest existingDetailRequest = new UserDetailRequest();
+    existingDetailRequest.id = 2L;
+    existingDetailRequest.detailRetrieved = true;
+    db.save(existingDetailRequest);
+
+    new FollowersRetriever(db, mockFriendsFollowers()).retrieveFollowersBatch();
+    waitForEventualSave(Follower.class);
+
+    List<Follower> followers = db.find(Follower.class, 3);
+    assertEquals(2, followers.size());
+
+    List<UserDetailRequest> detailRequests = db.find(UserDetailRequest.class, 3);
+    assertEquals(2, detailRequests.size());
+    detailRequests.sort((d1, d2) -> Long.compare(d1.id, d2.id));
+
+    UserDetailRequest detailRequest1 = detailRequests.get(0);
+    assertEquals(2L, detailRequest1.id);
+    // check that it kept the existing retrieved detail request for user 2 marked as retrieved
+    assertTrue(detailRequest1.detailRetrieved);
+
+    UserDetailRequest detailRequest2 = detailRequests.get(1);
+    assertEquals(3L, detailRequest2.id);
+    // check that the new detail request for user 3 is marked as not retrieved
+    assertFalse(detailRequest2.detailRetrieved);
+
+    List<FollowersTracker> trackers = db.find(FollowersTracker.class, 4);
+    assertEquals(3, trackers.size());
+    trackers.sort((t1, t2) -> Long.compare(t1.id, t2.id));
+
+    FollowersTracker tracker1 = trackers.get(0);
+    assertEquals(1L, tracker1.id);
+
+    FollowersTracker tracker2 = trackers.get(1);
+    assertEquals(2L, tracker2.id);
+    assertTrue(tracker2.shouldRetrieveFriends);
+    assertTrue(tracker2.shouldRetrieveFollowers);
+    assertFalse(tracker2.shouldRetrieveLevel2Followers);
+    // check that it preserved the previously set value for retrieving level 2 friends
+    assertTrue(tracker2.shouldRetrieveLevel2Friends);
+
+    FollowersTracker tracker3 = trackers.get(2);
+    assertEquals(3L, tracker3.id);
+    assertTrue(tracker3.shouldRetrieveFriends);
+    assertTrue(tracker3.shouldRetrieveFollowers);
+    // check that it defaults level to retrieval fields to false
+    assertFalse(tracker3.shouldRetrieveLevel2Followers);
+    assertFalse(tracker3.shouldRetrieveLevel2Friends);
   }
 
   private FriendsFollowersResources mockFriendsFollowers() throws TwitterException {

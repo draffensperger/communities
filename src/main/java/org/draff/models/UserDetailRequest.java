@@ -5,4 +5,5 @@ package org.draff.models;
  */
 public class UserDetailRequest {
   public long id;
+  public boolean detailRetrieved = false;
 }

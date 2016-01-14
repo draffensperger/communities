@@ -1,17 +1,6 @@
 package org.draff.objectdb;
 
-import com.google.api.services.datastore.DatastoreV1.CommitRequest;
-import com.google.api.services.datastore.DatastoreV1.Entity;
-import com.google.api.services.datastore.DatastoreV1.Filter;
-import com.google.api.services.datastore.DatastoreV1.Key;
-import com.google.api.services.datastore.DatastoreV1.LookupRequest;
-import com.google.api.services.datastore.DatastoreV1.LookupResponse;
-import com.google.api.services.datastore.DatastoreV1.Mutation;
-import com.google.api.services.datastore.DatastoreV1.PropertyFilter;
-import com.google.api.services.datastore.DatastoreV1.PropertyOrder;
-import com.google.api.services.datastore.DatastoreV1.Query;
-import com.google.api.services.datastore.DatastoreV1.RunQueryRequest;
-import com.google.api.services.datastore.DatastoreV1.RunQueryResponse;
+import com.google.api.services.datastore.DatastoreV1.*;
 import com.google.api.services.datastore.client.Datastore;
 import com.google.api.services.datastore.client.DatastoreException;
 
@@ -20,8 +9,8 @@ import java.util.stream.Collectors;
 
 import static com.google.api.services.datastore.client.DatastoreHelper.makeFilter;
 import static com.google.api.services.datastore.client.DatastoreHelper.makeKey;
-import static com.google.api.services.datastore.client.DatastoreHelper.makeOrder;
 import static com.google.api.services.datastore.client.DatastoreHelper.makeValue;
+import static com.google.api.services.datastore.client.DatastoreHelper.makeOrder;
 
 /**
  * Created by dave on 1/3/16.
@@ -116,14 +105,19 @@ public class DatastoreUtil {
     }
   }
 
-  public List<Entity> findOrderedById(String kind, int limit, long minId) {
+  public List<Entity> findOrderedById(String kind, int limit, long minId, Filter constraintsFilter) {
     Query.Builder query = Query.newBuilder();
     query.addKindBuilder().setName(kind);
+    query.addOrder(makeOrder("__key__", PropertyOrder.Direction.ASCENDING));
+    query.setLimit(limit);
+
     Filter minKeyFilter = makeFilter("__key__", PropertyFilter.Operator.GREATER_THAN_OR_EQUAL,
         makeValue(makeKey(kind, minId))).build();
-    query.addOrder(makeOrder("__key__", PropertyOrder.Direction.ASCENDING));
-    query.setFilter(minKeyFilter);
-    query.setLimit(limit);
+    if (constraintsFilter == null) {
+      query.setFilter(minKeyFilter);
+    } else {
+      query.setFilter(makeFilter(minKeyFilter, constraintsFilter));
+    }
 
     RunQueryRequest request = RunQueryRequest.newBuilder().setQuery(query).build();
 

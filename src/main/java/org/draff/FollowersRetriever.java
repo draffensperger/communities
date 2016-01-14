@@ -1,9 +1,11 @@
 package org.draff;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.primitives.Longs;
 
 import org.draff.models.Follower;
 import org.draff.models.FollowersTracker;
+import org.draff.models.UserDetailRequest;
 import org.draff.objectdb.ObjectDb;
 
 import twitter4j.IDs;
@@ -110,7 +112,18 @@ public class FollowersRetriever {
 
   private void addLevel2TrackersIfNeeded(FollowersTracker tracker, long[] friendOrFollowerIds) {
     if (tracker.shouldRetrieveLevel2Followers || tracker.shouldRetrieveLevel2Friends) {
-      // implement a bulk create or update function
+      db.createOrUpdate(FollowersTracker.class, Longs.asList(friendOrFollowerIds), level2Tracker -> {
+        level2Tracker.shouldRetrieveFriends = tracker.shouldRetrieveLevel2Friends;
+        level2Tracker.shouldRetrieveFollowers = tracker.shouldRetrieveLevel2Followers;
+      });
+
+      addUserDetailRequests(friendOrFollowerIds);
     }
+  }
+
+  private void addUserDetailRequests(long[] userIds) {
+    // Leave existing user detail requests as is, but create new ones with the detault value of
+    // false for the detailRetrieved field.
+    db.createOrUpdate(UserDetailRequest.class, Longs.asList(userIds), null);
   }
 }

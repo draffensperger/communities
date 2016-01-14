@@ -20,6 +20,7 @@ public interface ObjectDb {
   <T> List<T> findByIds(Class<T> clazz, Collection<Long> ids);
   <T> T findById(Class<T> clazz, long id);
   <T> List<T> findOrderedById(Class<T> clazz, int limit, long minId);
+  <T> List<T> findOrderedById(Class<T> clazz, int limit, long minId, Map<String, Object> constraints);
   void delete(Object object);
   void deleteAll(List<?> object);
   void deleteAllByIds(Class clazz, Collection<Long> ids);
