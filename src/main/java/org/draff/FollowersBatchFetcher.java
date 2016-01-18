@@ -19,11 +19,9 @@ import java.util.Map;
 /**
  * Created by dave on 1/7/16.
  */
-public class FollowersRetriever {
+public class FollowersBatchFetcher {
   private ObjectDb db;
   private FriendsFollowersResources friendsFollowers;
-
-  private final static long TWITTER_CURSOR_START = -1L;
 
   private final static Map<String, Object> NEEDS_FOLLOWERS =
       new ImmutableMap.Builder<String, Object>().put("shouldRetrieveFollowers", true)
@@ -33,20 +31,20 @@ public class FollowersRetriever {
       new ImmutableMap.Builder<String, Object>().put("shouldRetrieveFriends", true)
           .put("friendsRetrieved", false).build();
 
-  public FollowersRetriever(ObjectDb db, FriendsFollowersResources friendsFollowers) {
+  public FollowersBatchFetcher(ObjectDb db, FriendsFollowersResources friendsFollowers) {
     this.db = db;
     this.friendsFollowers = friendsFollowers;
   }
 
-  public void retrieveFollowersBatch() throws TwitterException {
-    retrieveBatch(false, NEEDS_FOLLOWERS);
+  public void fetchFollowersBatch() throws TwitterException {
+    fetchBatch(false, NEEDS_FOLLOWERS);
   }
 
-  public void retrieveFriendsBatch() throws TwitterException {
-    retrieveBatch(true, NEEDS_FRIENDS);
+  public void fetchFriendsBatch() throws TwitterException {
+    fetchBatch(true, NEEDS_FRIENDS);
   }
 
-  private void retrieveBatch(boolean isFriends, Map<String, Object> trackerConstraints)
+  private void fetchBatch(boolean isFriends, Map<String, Object> trackerConstraints)
       throws TwitterException {
     FollowersTracker tracker = db.findOne(FollowersTracker.class, trackerConstraints);
     if (tracker == null) {
@@ -55,23 +53,25 @@ public class FollowersRetriever {
 
     long[] friendOrFollowerIds;
     if (isFriends) {
-      friendOrFollowerIds = retrieveFriends(tracker);
+      friendOrFollowerIds = fetchFriends(tracker);
     } else {
-      friendOrFollowerIds = retrieveFollowers(tracker);
+      friendOrFollowerIds = fetchFollowers(tracker);
     }
 
     addLevel2TrackersIfNeeded(tracker, friendOrFollowerIds);
     db.save(tracker);
   }
 
-  private long[] retrieveFollowers(FollowersTracker tracker) throws TwitterException {
+  private long[] fetchFollowers(FollowersTracker tracker) throws TwitterException {
+    System.out.println("Fetching followers batch for userid: " + tracker.id);
     IDs followerIds = friendsFollowers.getFollowersIDs(tracker.id, tracker.followersCursor);
     saveFollowers(tracker.id, followerIds.getIDs());
     updateFollowersCursor(tracker, followerIds);
     return followerIds.getIDs();
   }
 
-  private long[] retrieveFriends(FollowersTracker tracker) throws TwitterException {
+  private long[] fetchFriends(FollowersTracker tracker) throws TwitterException {
+    System.out.println("Fetching friends batch for userid: " + tracker.id);
     IDs friendIds = friendsFollowers.getFriendsIDs(tracker.id, tracker.friendsCursor);
     saveFriends(tracker.id, friendIds.getIDs());
     updateFriendsCursor(tracker, friendIds);
@@ -83,7 +83,9 @@ public class FollowersRetriever {
     for (long followerId : followerIds) {
       followers.add(new Follower(userId, followerId));
     }
+    System.out.println("Started followers at timestamp: " + System.currentTimeMillis());
     db.saveAll(followers);
+    System.out.println("Finished followers at timestamp: " + System.currentTimeMillis());
   }
 
   private void saveFriends(long userId, long[] friendIds) {
@@ -99,6 +101,7 @@ public class FollowersRetriever {
       tracker.followersCursor = followerIds.getNextCursor();
     } else {
       tracker.followersRetrieved = true;
+      tracker.followersCursor = -1L;
     }
   }
 
@@ -107,6 +110,7 @@ public class FollowersRetriever {
       tracker.friendsCursor = friendsIds.getNextCursor();
     } else {
       tracker.friendsRetrieved = true;
+      tracker.friendsCursor = -1L;
     }
   }
 

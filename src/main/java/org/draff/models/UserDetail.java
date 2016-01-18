@@ -11,6 +11,7 @@ public class UserDetail {
   public String screenName;
   public String location;
   public String description;
+  public String url;
   public long statusesCount;
   public long listedCount;
   public long followersCount;
@@ -51,6 +52,7 @@ public class UserDetail {
     screenName = u.getScreenName();
     location = u.getLocation();
     description = u.getDescription();
+    url = u.getURL();
 
     statusesCount = u.getStatusesCount();
     listedCount = u.getListedCount();

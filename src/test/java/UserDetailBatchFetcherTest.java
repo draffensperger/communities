@@ -1,4 +1,4 @@
-import org.draff.UserDetailRetriever;
+import org.draff.UserDetailBatchFetcher;
 import org.draff.models.UserDetail;
 import org.draff.models.UserDetailRequest;
 import org.draff.objectdb.DatastoreDb;
@@ -21,7 +21,7 @@ import static org.mockito.Mockito.*;
 /**
  * Created by dave on 1/9/16.
  */
-public class UserDetailRetrieverTest {
+public class UserDetailBatchFetcherTest {
   private DatastoreDb db;
 
   @Before
@@ -47,8 +47,8 @@ public class UserDetailRetrieverTest {
     db.save(existingDetail);
     waitForEventualSave(UserDetail.class);
 
-    UserDetailRetriever retriever = new UserDetailRetriever(db, mockUserResources());
-    retriever.retrieveUserIdsBatchDetails();
+    UserDetailBatchFetcher retriever = new UserDetailBatchFetcher(db, mockUserResources());
+    retriever.fetchUserDetailsBatch();
 
     List<UserDetailRequest> requests = db.find(UserDetailRequest.class, 4);
     assertEquals(3, requests.size());

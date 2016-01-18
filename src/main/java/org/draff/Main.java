@@ -1,15 +1,6 @@
 package org.draff;
 
-import com.google.api.services.datastore.client.Datastore;
-import com.google.api.services.datastore.client.DatastoreFactory;
-import com.google.api.services.datastore.client.DatastoreHelper;
-
 import org.apache.log4j.PropertyConfigurator;
-import org.draff.objectdb.DatastoreDb;
-import org.draff.objectdb.ObjectDb;
-
-import twitter4j.Twitter;
-import twitter4j.TwitterFactory;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -21,18 +12,8 @@ import java.util.Properties;
 public class Main {
   public static void main(String[] args) {
     setupLogger();
-    //FollowersRetriever worker = new FollowersRetriever(objectDb(), twitter());
-    //worker.run();
-  }
-
-  private static ObjectDb objectDb() {
-    return new DatastoreDb(datastore());
-  }
-
-  private static Datastore datastore() {
-    Datastore datastore = null;
     try {
-      datastore = DatastoreFactory.get().create(DatastoreHelper.getOptionsFromEnv().build());
+      TwitterGraphFetcher.configureFromEnv().runFetch();
     } catch (GeneralSecurityException exception) {
       System.err.println("Security error connecting to the datastore: " + exception.getMessage());
       exception.printStackTrace();
@@ -42,11 +23,6 @@ public class Main {
       exception.printStackTrace();
       System.exit(1);
     }
-    return datastore;
-  }
-
-  private static Twitter twitter() {
-    return new TwitterFactory().getInstance();
   }
 
   private static void setupLogger() {

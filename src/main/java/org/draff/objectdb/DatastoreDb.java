@@ -43,9 +43,15 @@ public class DatastoreDb implements ObjectDb {
 
   @Override
   public void saveAll(List<? extends Object> objects) {
+    if (objects.isEmpty()) {
+      return;
+    }
+    System.out.println("Started converting to entities at timestamp: " + System.currentTimeMillis());
     List<Entity> entities = objects.stream()
         .map(o -> toEntity(o)).collect(Collectors.toList());
+    System.out.println("Started saving upserts for " + objects.get(0).getClass().getSimpleName() + " at: " + System.currentTimeMillis());
     util.saveUpserts(entities);
+    System.out.println("Finished saving upserts at: " + System.currentTimeMillis());
   }
 
   @Override

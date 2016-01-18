@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 /**
  * Created by dave on 1/9/16.
  */
-public class UserDetailRetriever {
+public class UserDetailBatchFetcher {
   private ObjectDb db;
   private UsersResources twitterUsers;
   private static final int BATCH_SIZE = 100;
@@ -24,14 +24,18 @@ public class UserDetailRetriever {
   private final static Map<String, Object> DETAIL_NOT_RETRIEVED =
       new ImmutableMap.Builder<String, Object>().put("detailRetrieved", false).build();
 
-  public UserDetailRetriever(ObjectDb db, UsersResources users) {
+  public UserDetailBatchFetcher(ObjectDb db, UsersResources users) {
     this.db = db;
     this.twitterUsers = users;
   }
 
-  public void retrieveUserIdsBatchDetails() {
+  public void fetchUserDetailsBatch() {
     try {
       long[] neededIds = neededUserIdsBatch();
+      if (neededIds.length == 0) {
+        return;
+      }
+      System.out.println("Fetching user details for " + neededIds.length + " users.");
       List<User> users = twitterUsers.lookupUsers(neededIds);
       saveUserDetails(users);
       db.createOrUpdate(UserDetailRequest.class, Longs.asList(neededIds),

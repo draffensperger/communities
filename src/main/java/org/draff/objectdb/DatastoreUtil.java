@@ -16,6 +16,8 @@ import static com.google.api.services.datastore.client.DatastoreHelper.makeOrder
  * Created by dave on 1/3/16.
  */
 public class DatastoreUtil {
+  private static final int MAX_ENTITIES_PER_BATCH = 500;
+
   private Datastore datastore;
   public DatastoreUtil(Datastore datastore) {
     this.datastore = datastore;
@@ -26,6 +28,24 @@ public class DatastoreUtil {
   }
 
   public void saveUpserts(List<Entity> entities) {
+    int i = 0;
+    while(entities.size() > i + MAX_ENTITIES_PER_BATCH) {
+      saveUpsertBatch(entities.subList(i, i + MAX_ENTITIES_PER_BATCH));
+      i += MAX_ENTITIES_PER_BATCH;
+    }
+    saveUpsertBatch(entities.subList(i, entities.size()));
+
+//    // Datastore will only allow so many inserts in a given batch
+//    if (entities.size() <= MAX_ENTITIES_PER_BATCH) {
+//      saveUpsertBatch(entities);
+//    } else {
+//      saveUpsertBatch(entities.subList(0, MAX_ENTITIES_PER_BATCH));
+//      saveUpserts(entities.subList(MAX_ENTITIES_PER_BATCH, entities.size()));
+//    }
+
+  }
+
+  private void saveUpsertBatch(List<Entity> entities) {
     Mutation.Builder mutation = Mutation.newBuilder();
     for (Entity entity : entities) {
       mutation.addUpsert(entity);

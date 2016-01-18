@@ -1,4 +1,4 @@
-import org.draff.FollowersRetriever;
+import org.draff.FollowersBatchFetcher;
 import org.draff.models.*;
 import org.draff.objectdb.DatastoreDb;
 import org.draff.support.TestDatastore;
@@ -20,7 +20,7 @@ import static org.mockito.Mockito.*;
 /**
  * Created by dave on 1/12/16.
  */
-public class FollowersRetrieverTest {
+public class FollowersBatchFetcherTest {
   private DatastoreDb db;
 
   @Before
@@ -37,7 +37,7 @@ public class FollowersRetrieverTest {
     db.save(tracker);
     waitForEventualSave(FollowersTracker.class);
 
-    new FollowersRetriever(db, mockFriendsFollowers()).retrieveFollowersBatch();
+    new FollowersBatchFetcher(db, mockFriendsFollowers()).fetchFollowersBatch();
 
     waitForEventualSave(Follower.class);
 
@@ -71,7 +71,7 @@ public class FollowersRetrieverTest {
     db.save(tracker);
     waitForEventualSave(FollowersTracker.class);
 
-    new FollowersRetriever(db, mockFriendsFollowers()).retrieveFriendsBatch();
+    new FollowersBatchFetcher(db, mockFriendsFollowers()).fetchFriendsBatch();
 
     waitForEventualSave(Follower.class);
 
@@ -117,7 +117,7 @@ public class FollowersRetrieverTest {
     existingDetailRequest.detailRetrieved = true;
     db.save(existingDetailRequest);
 
-    new FollowersRetriever(db, mockFriendsFollowers()).retrieveFollowersBatch();
+    new FollowersBatchFetcher(db, mockFriendsFollowers()).fetchFollowersBatch();
     waitForEventualSave(Follower.class);
 
     List<Follower> followers = db.find(Follower.class, 3);
