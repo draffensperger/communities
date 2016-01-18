@@ -46,12 +46,16 @@ public class DatastoreDb implements ObjectDb {
     if (objects.isEmpty()) {
       return;
     }
-    System.out.println("Started converting to entities at timestamp: " + System.currentTimeMillis());
+    long start = System.nanoTime();
     List<Entity> entities = objects.stream()
         .map(o -> toEntity(o)).collect(Collectors.toList());
-    System.out.println("Started saving upserts for " + objects.get(0).getClass().getSimpleName() + " at: " + System.currentTimeMillis());
+    System.out.println("  converting " + objects.size() + " objects to entities took " +
+        (System.nanoTime() - start)/1000000 + " ms");
+
+    start = System.nanoTime();
     util.saveUpserts(entities);
-    System.out.println("Finished saving upserts at: " + System.currentTimeMillis());
+    System.out.println("  saving " + objects.size() + " upserts took " +
+        (System.nanoTime() - start)/1000000 + " ms");
   }
 
   @Override

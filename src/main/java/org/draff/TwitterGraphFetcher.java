@@ -1,17 +1,18 @@
 package org.draff;
 
 import com.google.api.services.datastore.client.Datastore;
+
 import com.google.api.services.datastore.client.DatastoreFactory;
 import com.google.api.services.datastore.client.DatastoreHelper;
 
 import org.draff.objectdb.DatastoreDb;
 import org.draff.objectdb.ObjectDb;
 
-import twitter4j.Twitter;
-import twitter4j.TwitterFactory;
+import twitter4j.*;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.*;
 
 /**
  * Created by dave on 1/14/16.
@@ -19,13 +20,15 @@ import java.security.GeneralSecurityException;
 public class TwitterGraphFetcher {
   private FollowersFetcher followersFetcher;
   private UserDetailFetcher userDetailFetcher;
+  private Twitter twitter;
 
   public TwitterGraphFetcher(ObjectDb objectDb, Twitter twitter) {
     FollowersBatchFetcher followersBatchFetcher =
         new FollowersBatchFetcher(objectDb, twitter.friendsFollowers());
     FollowersGoalUpdater followersGoalUpdater =
         new FollowersGoalUpdater(objectDb, twitter.users());
-    this.followersFetcher = new FollowersFetcher(followersBatchFetcher, followersGoalUpdater);
+    this.followersFetcher = new FollowersFetcher(twitter, followersBatchFetcher, followersGoalUpdater);
+    this.twitter = twitter;
 
     UserDetailBatchFetcher userDetailBatchFetcher =
         new UserDetailBatchFetcher(objectDb, twitter.users());
@@ -37,6 +40,13 @@ public class TwitterGraphFetcher {
   }
 
   public void runFetch() {
+    Map<String, RateLimitStatus> rateLimitStatusMap = new HashMap<>();
+    try {
+      rateLimitStatusMap = twitter.getRateLimitStatus();
+    } catch(TwitterException e) {
+      e.printStackTrace();
+    }
+
     Thread followersFetcherThread = new Thread(followersFetcher);
     Thread userDetailFetcherThread = new Thread(userDetailFetcher);
 

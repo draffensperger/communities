@@ -65,6 +65,7 @@ public class FollowersBatchFetcher {
   private long[] fetchFollowers(FollowersTracker tracker) throws TwitterException {
     System.out.println("Fetching followers batch for userid: " + tracker.id);
     IDs followerIds = friendsFollowers.getFollowersIDs(tracker.id, tracker.followersCursor);
+    System.out.println("  saving " + followerIds.getIDs().length + " followers");
     saveFollowers(tracker.id, followerIds.getIDs());
     updateFollowersCursor(tracker, followerIds);
     return followerIds.getIDs();
@@ -73,6 +74,7 @@ public class FollowersBatchFetcher {
   private long[] fetchFriends(FollowersTracker tracker) throws TwitterException {
     System.out.println("Fetching friends batch for userid: " + tracker.id);
     IDs friendIds = friendsFollowers.getFriendsIDs(tracker.id, tracker.friendsCursor);
+    System.out.println("  saving " + friendIds.getIDs().length + " friends");
     saveFriends(tracker.id, friendIds.getIDs());
     updateFriendsCursor(tracker, friendIds);
     return friendIds.getIDs();
@@ -83,9 +85,7 @@ public class FollowersBatchFetcher {
     for (long followerId : followerIds) {
       followers.add(new Follower(userId, followerId));
     }
-    System.out.println("Started followers at timestamp: " + System.currentTimeMillis());
     db.saveAll(followers);
-    System.out.println("Finished followers at timestamp: " + System.currentTimeMillis());
   }
 
   private void saveFriends(long userId, long[] friendIds) {

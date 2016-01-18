@@ -1,19 +1,27 @@
 package org.draff;
 
+import twitter4j.RateLimitStatus;
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
+
+import java.util.*;
+
 /**
  * Created by dave on 1/13/16.
  */
 public class FollowersFetcher implements Runnable {
   private FollowersBatchFetcher batchFetcher;
   private FollowersGoalUpdater goalUpdater;
+  private Twitter twitter;
 
   // Both the get friends ids and the get followers ids are rate limited to an average of 1/minute
-  private final long MIN_MS_BETWEEN_BATCHES = 2 * 60 * 1000;
+  private final long MIN_MS_BETWEEN_BATCHES = 60 * 1000;
 
   private long friendsBatchStartedAt = System.currentTimeMillis();
   private long followersBatchStartedAt = System.currentTimeMillis();
 
-  public FollowersFetcher(FollowersBatchFetcher batchFetcher, FollowersGoalUpdater goalUpdater) {
+  public FollowersFetcher(Twitter twitter, FollowersBatchFetcher batchFetcher, FollowersGoalUpdater goalUpdater) {
+    this.twitter = twitter;
     this.batchFetcher = batchFetcher;
     this.goalUpdater = goalUpdater;
   }
@@ -21,6 +29,13 @@ public class FollowersFetcher implements Runnable {
   public void run() {
     try {
       while(true) {
+        Map<String, RateLimitStatus> rateLimitStatusMap = new HashMap<>();
+        try {
+          rateLimitStatusMap = twitter.getRateLimitStatus();
+        } catch(TwitterException e) {
+          e.printStackTrace();
+        }
+
         try {
           goalUpdater.retrieveFollowersGoalDetails();
         } catch(Exception e) {
