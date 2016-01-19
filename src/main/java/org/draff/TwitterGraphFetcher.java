@@ -18,21 +18,12 @@ import java.util.*;
  * Created by dave on 1/14/16.
  */
 public class TwitterGraphFetcher {
-  private FollowersFetcher followersFetcher;
-  private UserDetailFetcher userDetailFetcher;
+  private ObjectDb objectDb;
   private Twitter twitter;
 
   public TwitterGraphFetcher(ObjectDb objectDb, Twitter twitter) {
-    FollowersBatchFetcher followersBatchFetcher =
-        new FollowersBatchFetcher(objectDb, twitter.friendsFollowers());
-    FollowersGoalUpdater followersGoalUpdater =
-        new FollowersGoalUpdater(objectDb, twitter.users());
-    this.followersFetcher = new FollowersFetcher(twitter, followersBatchFetcher, followersGoalUpdater);
+    this.objectDb = objectDb;
     this.twitter = twitter;
-
-    UserDetailBatchFetcher userDetailBatchFetcher =
-        new UserDetailBatchFetcher(objectDb, twitter.users());
-    this.userDetailFetcher = new UserDetailFetcher(userDetailBatchFetcher);
   }
 
   public static TwitterGraphFetcher configureFromEnv() throws GeneralSecurityException, IOException {
@@ -40,12 +31,29 @@ public class TwitterGraphFetcher {
   }
 
   public void runFetch() {
-    Map<String, RateLimitStatus> rateLimitStatusMap = new HashMap<>();
+    Map<String, RateLimitStatus> rateLimitStatusMap;
     try {
       rateLimitStatusMap = twitter.getRateLimitStatus();
     } catch(TwitterException e) {
       e.printStackTrace();
+      return;
     }
+
+    RateLimit followersRateLimit = new RateLimit(rateLimitStatusMap.get("/followers/ids"));
+    RateLimit friendsRateLimit = new RateLimit(rateLimitStatusMap.get("/friends/ids"));
+
+    FollowersBatchFetcher followersBatchFetcher =
+        new FollowersBatchFetcher(objectDb, twitter.friendsFollowers());
+    FollowersGoalUpdater followersGoalUpdater =
+        new FollowersGoalUpdater(objectDb, twitter.users());
+    FollowersFetcher followersFetcher =
+        new FollowersFetcher(followersBatchFetcher, followersGoalUpdater,
+            followersRateLimit, friendsRateLimit);
+
+    UserDetailBatchFetcher userDetailBatchFetcher =
+        new UserDetailBatchFetcher(objectDb, twitter.users());
+    UserDetailFetcher userDetailFetcher = new UserDetailFetcher(userDetailBatchFetcher);
+
 
     Thread followersFetcherThread = new Thread(followersFetcher);
     Thread userDetailFetcherThread = new Thread(userDetailFetcher);

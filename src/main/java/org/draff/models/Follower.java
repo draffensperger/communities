@@ -6,13 +6,11 @@ package org.draff.models;
 public class Follower {
   public long userId;
   public long followerId;
-  public long retrievedAt;
 
   public Follower() {}
   public Follower(long userId, long followerId) {
     this.userId = userId;
     this.followerId = followerId;
-    this.retrievedAt = System.currentTimeMillis();
   }
 
   public String id() {

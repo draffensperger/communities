@@ -166,7 +166,7 @@ public class EntityMapper {
     } else if (value.hasBooleanValue()) {
       return value.getBooleanValue();
     } else if (value.hasTimestampMicrosecondsValue()) {
-      return value.getTimestampMicrosecondsValue();
+      return new Date(value.getTimestampMicrosecondsValue() / 1000L);
     } else {
       throw new IllegalArgumentException(
           "Not configured to convert Datastore value " + value);

@@ -1,5 +1,7 @@
 import org.draff.FollowersBatchFetcher;
-import org.draff.models.*;
+import org.draff.models.Follower;
+import org.draff.models.FollowersTracker;
+import org.draff.models.UserDetailRequest;
 import org.draff.objectdb.DatastoreDb;
 import org.draff.support.TestDatastore;
 import org.junit.Before;
@@ -13,7 +15,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.draff.support.EventualConsistencyHelper.waitForEventualSave;
-import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -54,13 +55,11 @@ public class FollowersBatchFetcherTest {
     assertEquals("1:2", follower0.id());
     assertEquals(1L, follower0.userId);
     assertEquals(2L, follower0.followerId);
-    assertThat(follower0.retrievedAt, greaterThan(0L));
 
     Follower follower1 = followers.get(1);
     assertEquals("1:3", follower1.id());
     assertEquals(1L, follower1.userId);
     assertEquals(3L, follower1.followerId);
-    assertThat(follower1.retrievedAt, greaterThan(0L));
   }
 
   @Test
@@ -88,13 +87,11 @@ public class FollowersBatchFetcherTest {
     assertEquals("4:1", follower0.id());
     assertEquals(4L, follower0.userId);
     assertEquals(1L, follower0.followerId);
-    assertThat(follower0.retrievedAt, greaterThan(0L));
 
     Follower follower1 = followers.get(1);
     assertEquals("5:1", follower1.id());
     assertEquals(5L, follower1.userId);
     assertEquals(1L, follower1.followerId);
-    assertThat(follower1.retrievedAt, greaterThan(0L));
   }
 
   @Test
