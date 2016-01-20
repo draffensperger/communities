@@ -45,7 +45,6 @@ public class FollowersGoalUpdaterTest {
 
     FollowersTracker existingFollowersTracker = new FollowersTracker();
     existingFollowersTracker.id = 10;
-    existingFollowersTracker.friendsRetrieved = true;
     db.save(existingFollowersTracker);
     waitForEventualSave(FollowersTracker.class);
 
@@ -64,18 +63,11 @@ public class FollowersGoalUpdaterTest {
 
     FollowersTracker followersTracker1 = db.findById(FollowersTracker.class, 10);
     assertNotNull(followersTracker1);
-    assertTrue(followersTracker1.shouldRetrieveFriends);
-    assertTrue(followersTracker1.shouldRetrieveFriends);
-    assertTrue(followersTracker1.friendsRetrieved);
     assertFalse(followersTracker1.shouldRetrieveLevel2Followers);
-    assertFalse(followersTracker1.shouldRetrieveLevel2Friends);
 
     FollowersTracker followersTracker2 = db.findById(FollowersTracker.class, 20);
     assertNotNull(followersTracker2);
-    assertTrue(followersTracker2.shouldRetrieveFriends);
-    assertTrue(followersTracker2.shouldRetrieveFriends);
     assertTrue(followersTracker2.shouldRetrieveLevel2Followers);
-    assertTrue(followersTracker2.shouldRetrieveLevel2Friends);
   }
 
   private UsersResources mockUserResources() throws TwitterException {

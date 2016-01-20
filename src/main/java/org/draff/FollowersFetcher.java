@@ -7,13 +7,11 @@ public class FollowersFetcher implements Runnable {
   private FollowersBatchFetcher batchFetcher;
   private FollowersGoalUpdater goalUpdater;
   private RateLimit followersRateLimit;
-  private RateLimit friendsRateLimit;
 
   public FollowersFetcher(FollowersBatchFetcher batchFetcher, FollowersGoalUpdater goalUpdater,
-                          RateLimit followersRateLimit, RateLimit friendsRateLimit) {
+                          RateLimit followersRateLimit) {
     this.batchFetcher = batchFetcher;
     this.goalUpdater = goalUpdater;
-    this.friendsRateLimit = friendsRateLimit;
     this.followersRateLimit = followersRateLimit;
   }
 
@@ -26,13 +24,11 @@ public class FollowersFetcher implements Runnable {
           e.printStackTrace();
         }
 
-        while(followersRateLimit.hasRemaining() || friendsRateLimit.hasRemaining()) {
+        while(followersRateLimit.hasRemaining()) {
           fetchFollowersIfHasRemaining();
-          fetchFriendsIfHasRemaining();
         }
 
-        long msToSleep = Math.min(followersRateLimit.timeUntilNextReset(),
-            friendsRateLimit.timeUntilNextReset());
+        long msToSleep = followersRateLimit.timeUntilNextReset();
         System.out.println("Sleeping " + msToSleep + " for rate limit.");
         Thread.sleep(msToSleep);
       }
@@ -44,18 +40,6 @@ public class FollowersFetcher implements Runnable {
       try {
         followersRateLimit.decrement();
         batchFetcher.fetchFollowersBatch();
-      } catch(Exception e) {
-        e.printStackTrace();
-        throw new RuntimeException(e);
-      }
-    }
-  }
-
-  private void fetchFriendsIfHasRemaining() {
-    if (friendsRateLimit.hasRemaining()) {
-      try {
-        friendsRateLimit.decrement();
-        batchFetcher.fetchFriendsBatch();
       } catch(Exception e) {
         e.printStackTrace();
         throw new RuntimeException(e);

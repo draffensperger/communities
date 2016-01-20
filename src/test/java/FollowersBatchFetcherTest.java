@@ -63,48 +63,14 @@ public class FollowersBatchFetcherTest {
   }
 
   @Test
-  public void testRetrieveFriends() throws TwitterException {
-    FollowersTracker tracker = new FollowersTracker();
-    tracker.id = 1L;
-    tracker.shouldRetrieveFriends = true;
-    db.save(tracker);
-    waitForEventualSave(FollowersTracker.class);
-
-    new FollowersBatchFetcher(db, mockFriendsFollowers()).fetchFriendsBatch();
-
-    waitForEventualSave(Follower.class);
-
-    FollowersTracker updatedTracker = db.findById(FollowersTracker.class, 1L);
-    assertEquals(true, updatedTracker.shouldRetrieveFriends);
-    assertEquals(false, updatedTracker.friendsRetrieved);
-    assertEquals(2002L, updatedTracker.friendsCursor);
-
-    List<Follower> followers = db.find(Follower.class, 2);
-    followers.sort((f1, f2) -> f1.id().compareTo(f2.id()));
-    assertEquals(2, followers.size());
-
-    Follower follower0 = followers.get(0);
-    assertEquals("4:1", follower0.id());
-    assertEquals(4L, follower0.userId);
-    assertEquals(1L, follower0.followerId);
-
-    Follower follower1 = followers.get(1);
-    assertEquals("5:1", follower1.id());
-    assertEquals(5L, follower1.userId);
-    assertEquals(1L, follower1.followerId);
-  }
-
-  @Test
   public void testAddsLevel2Trackers() throws TwitterException {
     FollowersTracker existingTracker1 = new FollowersTracker();
     existingTracker1.id = 1L;
     existingTracker1.shouldRetrieveFollowers = true;
     existingTracker1.shouldRetrieveLevel2Followers = true;
-    existingTracker1.shouldRetrieveLevel2Friends = true;
 
     FollowersTracker existingTracker2 = new FollowersTracker();
     existingTracker2.id = 2L;
-    existingTracker2.shouldRetrieveLevel2Friends = true;
 
     db.saveAll(Arrays.asList(existingTracker1, existingTracker2));
     waitForEventualSave(FollowersTracker.class);
@@ -140,22 +106,18 @@ public class FollowersBatchFetcherTest {
 
     FollowersTracker tracker1 = trackers.get(0);
     assertEquals(1L, tracker1.id);
+    // check that it stored the previous value
+    assertTrue(tracker1.shouldRetrieveLevel2Followers);
 
     FollowersTracker tracker2 = trackers.get(1);
     assertEquals(2L, tracker2.id);
-    assertTrue(tracker2.shouldRetrieveFriends);
     assertTrue(tracker2.shouldRetrieveFollowers);
-    assertFalse(tracker2.shouldRetrieveLevel2Followers);
-    // check that it preserved the previously set value for retrieving level 2 friends
-    assertTrue(tracker2.shouldRetrieveLevel2Friends);
 
     FollowersTracker tracker3 = trackers.get(2);
     assertEquals(3L, tracker3.id);
-    assertTrue(tracker3.shouldRetrieveFriends);
     assertTrue(tracker3.shouldRetrieveFollowers);
     // check that it defaults level to retrieval fields to false
     assertFalse(tracker3.shouldRetrieveLevel2Followers);
-    assertFalse(tracker3.shouldRetrieveLevel2Friends);
   }
 
   private FriendsFollowersResources mockFriendsFollowers() throws TwitterException {
@@ -167,13 +129,6 @@ public class FollowersBatchFetcherTest {
     when(followerIds.getNextCursor()).thenReturn(1001L);
 
     when(friendsFollowers.getFollowersIDs(1L, -1L)).thenReturn(followerIds);
-
-    IDs friendsIds = mock(IDs.class);
-    when(friendsIds.getIDs()).thenReturn(new long[]{4L, 5L});
-    when(friendsIds.hasNext()).thenReturn(true);
-    when(friendsIds.getNextCursor()).thenReturn(2002L);
-
-    when(friendsFollowers.getFriendsIDs(1L, -1L)).thenReturn(friendsIds);
 
     return friendsFollowers;
   }

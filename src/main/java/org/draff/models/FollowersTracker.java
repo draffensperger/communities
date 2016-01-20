@@ -6,16 +6,11 @@ package org.draff.models;
 public class FollowersTracker {
   public long id;
   public boolean shouldRetrieveFollowers;
-  public boolean shouldRetrieveFriends;
   public boolean shouldRetrieveLevel2Followers;
-  public boolean shouldRetrieveLevel2Friends;
 
   public boolean followersRetrieved;
-  public boolean friendsRetrieved;
   public boolean level2FollowersRetrieved;
-  public boolean level2FriendsRetrieved;
 
   // These should default to -1 for a new instance as that is the starting Twitter retrieval cursor.
   public long followersCursor = -1L;
-  public long friendsCursor = -1L;
 }

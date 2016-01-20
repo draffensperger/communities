@@ -25,42 +25,24 @@ public class FollowersBatchFetcher {
       new ImmutableMap.Builder<String, Object>().put("shouldRetrieveFollowers", true)
           .put("followersRetrieved", false).build();
 
-  private final static Map<String, Object> NEEDS_FRIENDS =
-      new ImmutableMap.Builder<String, Object>().put("shouldRetrieveFriends", true)
-          .put("friendsRetrieved", false).build();
-
   public FollowersBatchFetcher(ObjectDb db, FriendsFollowersResources friendsFollowers) {
     this.db = db;
     this.friendsFollowers = friendsFollowers;
   }
 
   public void fetchFollowersBatch() throws TwitterException {
-    fetchBatch(false, NEEDS_FOLLOWERS);
+    fetchBatch(NEEDS_FOLLOWERS);
   }
 
-  public void fetchFriendsBatch() throws TwitterException {
-    fetchBatch(true, NEEDS_FRIENDS);
-  }
-
-  private void fetchBatch(boolean isFriends, Map<String, Object> trackerConstraints)
+  private void fetchBatch(Map<String, Object> trackerConstraints)
       throws TwitterException {
     FollowersTracker tracker = db.findOne(FollowersTracker.class, trackerConstraints);
     if (tracker == null) {
       return;
     }
 
-    addLevel2TrackersIfNeeded(tracker, fetchFriendsOrFollowers(isFriends, tracker));
+    addLevel2TrackersIfNeeded(tracker, fetchFollowers(tracker));
     db.save(tracker);
-  }
-
-  private long[] fetchFriendsOrFollowers(boolean isFriends, FollowersTracker tracker)
-      throws TwitterException {
-
-    if (isFriends) {
-      return fetchFriends(tracker);
-    } else {
-      return fetchFollowers(tracker);
-    }
   }
 
   private long[] fetchFollowers(FollowersTracker tracker) throws TwitterException {
@@ -70,47 +52,25 @@ public class FollowersBatchFetcher {
       saveFollowers(tracker.id, followerIds.getIDs());
       updateFollowersCursor(tracker, followerIds);
       return followerIds.getIDs();
-    } catch(TwitterException e) {
-      handleOrRethrow(tracker, e, false);
+    } catch(TwitterException exception) {
+      handleOrRethrow(tracker, exception);
       return new long[0];
     }
   }
 
-  private long[] fetchFriends(FollowersTracker tracker) throws TwitterException {
-    System.out.println("Fetching friends batch for userid: " + tracker.id);
-    try {
-      IDs friendIds = friendsFollowers.getFriendsIDs(tracker.id, tracker.friendsCursor);
-      System.out.println("  saving " + friendIds.getIDs().length + " friends");
-      saveFriends(tracker.id, friendIds.getIDs());
-      updateFriendsCursor(tracker, friendIds);
-      return friendIds.getIDs();
-    } catch(TwitterException e) {
-      handleOrRethrow(tracker, e, true);
-      return new long[0];
-    }
-  }
-
-  private void handleOrRethrow(FollowersTracker tracker, TwitterException exception,
-                               boolean isFriends) throws TwitterException {
+  private void handleOrRethrow(FollowersTracker tracker, TwitterException exception)
+      throws TwitterException {
     if (exception.getStatusCode() == 401) {
       UserDetail userDetail = db.findById(UserDetail.class, tracker.id);
       if (userDetail == null) {
         // In this case it's most likely that the user is protected, but perhaps the UserDetail
         // record for it has not been retrieved yet. In this case, rather than making the explicit
         // claim that the followers have been retrieved, just set that we won't retrieve them.
-        if (isFriends) {
-          tracker.shouldRetrieveFriends = false;
-        } else {
-          tracker.shouldRetrieveFollowers = false;
-        }
+        tracker.shouldRetrieveFollowers = false;
       } else if (userDetail.isProtected) {
         // The 401 error is a result of the protected status of the user and is totally normal
-        // Just mark that we have retrieved the friends/followers for that users and move on.
-        if (isFriends) {
-          tracker.friendsRetrieved = true;
-        } else {
-          tracker.followersRetrieved = true;
-        }
+        // Just mark that we have retrieved the followers for that users and move on.
+        tracker.followersRetrieved = true;
       } else {
         throw exception;
       }
@@ -127,14 +87,6 @@ public class FollowersBatchFetcher {
     db.saveAll(followers);
   }
 
-  private void saveFriends(long userId, long[] friendIds) {
-    List<Follower> followers = new ArrayList<>(friendIds.length);
-    for (long friendId : friendIds) {
-      followers.add(new Follower(friendId, userId));
-    }
-    db.saveAll(followers);
-  }
-
   private void updateFollowersCursor(FollowersTracker tracker, IDs followerIds) {
     if (followerIds.hasNext()) {
       tracker.followersCursor = followerIds.getNextCursor();
@@ -144,19 +96,9 @@ public class FollowersBatchFetcher {
     }
   }
 
-  private void updateFriendsCursor(FollowersTracker tracker, IDs friendsIds) {
-    if (friendsIds.hasNext()) {
-      tracker.friendsCursor = friendsIds.getNextCursor();
-    } else {
-      tracker.friendsRetrieved = true;
-      tracker.friendsCursor = -1L;
-    }
-  }
-
   private void addLevel2TrackersIfNeeded(FollowersTracker tracker, long[] friendOrFollowerIds) {
-    if (tracker.shouldRetrieveLevel2Followers || tracker.shouldRetrieveLevel2Friends) {
+    if (tracker.shouldRetrieveLevel2Followers) {
       db.createOrUpdate(FollowersTracker.class, Longs.asList(friendOrFollowerIds), level2Tracker -> {
-        level2Tracker.shouldRetrieveFriends = tracker.shouldRetrieveLevel2Friends;
         level2Tracker.shouldRetrieveFollowers = tracker.shouldRetrieveLevel2Followers;
       });
 

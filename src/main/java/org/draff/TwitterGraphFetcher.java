@@ -30,7 +30,6 @@ public class TwitterGraphFetcher {
     }
 
     RateLimit followersRateLimit = new RateLimit(rateLimitStatusMap.get("/followers/ids"));
-    RateLimit friendsRateLimit = new RateLimit(rateLimitStatusMap.get("/friends/ids"));
 
     FollowersBatchFetcher followersBatchFetcher =
         new FollowersBatchFetcher(objectDb, twitter.friendsFollowers());
@@ -38,7 +37,7 @@ public class TwitterGraphFetcher {
         new FollowersGoalUpdater(objectDb, twitter.users());
     FollowersFetcher followersFetcher =
         new FollowersFetcher(followersBatchFetcher, followersGoalUpdater,
-            followersRateLimit, friendsRateLimit);
+            followersRateLimit);
 
     UserDetailBatchFetcher userDetailBatchFetcher =
         new UserDetailBatchFetcher(objectDb, twitter.users());

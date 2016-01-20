@@ -63,11 +63,9 @@ public class FollowersGoalUpdater {
     db.createOrUpdate(FollowersTracker.class, userId, tracker -> {
       if (depthGoal >= 1) {
         tracker.shouldRetrieveFollowers = true;
-        tracker.shouldRetrieveFriends = true;
       }
       if (depthGoal >= 2) {
         tracker.shouldRetrieveLevel2Followers = true;
-        tracker.shouldRetrieveLevel2Friends = true;
       }
     });
   }
