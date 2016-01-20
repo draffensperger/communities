@@ -1,6 +1,5 @@
 package org.draff;
 
-import org.draff.models.UserDetail;
 import org.draff.objectdb.ObjectDb;
 import java.util.*;
 

@@ -1,6 +1,5 @@
 package org.draff;
 
-import org.draff.models.*;
 import org.draff.objectdb.ObjectDb;
 
 import twitter4j.TwitterException;

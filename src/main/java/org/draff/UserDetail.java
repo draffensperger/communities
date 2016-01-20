@@ -1,4 +1,4 @@
-package org.draff.models;
+package org.draff;
 
 import java.util.Date;
 
@@ -6,46 +6,46 @@ import java.util.Date;
  * Created by dave on 1/7/16.
  */
 public class UserDetail {
-  public long id;
-  public long retrievedAt;
-  public String screenName;
-  public String location;
-  public String description;
-  public String url;
-  public long statusesCount;
-  public long listedCount;
-  public long followersCount;
-  public long favouritesCount;
-  public long utcOffset;
-  public long friendsCount;
-  public Date createdAt;
-  public String timeZone;
-  public String lang;
-  public boolean isGeoEnabled;
-  public boolean isVerified;
-  public boolean isTranslator;
-  public boolean isContributorsEnabled;
-  public boolean isProtected;
-  public String profileImageURL;
-  public String profileBackgroundColor;
-  public String profileTextColor;
-  public String profileLinkColor;
-  public String profileSidebarFillColor;
-  public String profileSidebarBorderColor;
-  public boolean isProfileUseBackgroundImage;
-  public boolean isDefaultProfile;
-  public boolean isShowAllInlineMedia;
-  public boolean isDefaultProfileImage;
-  public String profileBackgroundImageURL;
-  public String profileBannerURL;
-  public boolean isProfileBackgroundTiled;
+  long id;
+  long retrievedAt;
+  String screenName;
+  String location;
+  String description;
+  String url;
+  long statusesCount;
+  long listedCount;
+  long followersCount;
+  long favouritesCount;
+  long utcOffset;
+  long friendsCount;
+  Date createdAt;
+  String timeZone;
+  String lang;
+  boolean isGeoEnabled;
+  boolean isVerified;
+  boolean isTranslator;
+  boolean isContributorsEnabled;
+  boolean isProtected;
+  String profileImageURL;
+  String profileBackgroundColor;
+  String profileTextColor;
+  String profileLinkColor;
+  String profileSidebarFillColor;
+  String profileSidebarBorderColor;
+  boolean isProfileUseBackgroundImage;
+  boolean isDefaultProfile;
+  boolean isShowAllInlineMedia;
+  boolean isDefaultProfileImage;
+  String profileBackgroundImageURL;
+  String profileBannerURL;
+  boolean isProfileBackgroundTiled;
 
-  public UserDetail() {}
-  public UserDetail(twitter4j.User user) {
+  UserDetail() {}
+  UserDetail(twitter4j.User user) {
     setFieldsFromTwitterUser(user);
   }
 
-  public void setFieldsFromTwitterUser(twitter4j.User u) {
+  void setFieldsFromTwitterUser(twitter4j.User u) {
     retrievedAt = System.currentTimeMillis();
 
     id = u.getId();

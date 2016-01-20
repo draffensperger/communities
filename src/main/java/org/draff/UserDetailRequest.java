@@ -1,4 +1,4 @@
-package org.draff.models;
+package org.draff;
 
 /**
  * Created by dave on 1/10/16.

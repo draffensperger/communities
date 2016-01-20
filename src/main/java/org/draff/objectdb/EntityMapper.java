@@ -4,9 +4,7 @@ import com.google.api.services.datastore.DatastoreV1.Entity;
 import com.google.api.services.datastore.DatastoreV1.Key;
 import com.google.api.services.datastore.DatastoreV1.Value;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -54,8 +52,11 @@ public class EntityMapper {
 
   private static Object newInstance(Class clazz) {
     try {
-      return clazz.newInstance();
-    } catch (IllegalAccessException|InstantiationException e) {
+      Constructor constructor = clazz.getDeclaredConstructor(new Class[0]);
+      constructor.setAccessible(true);
+      return constructor.newInstance(null);
+    } catch (IllegalAccessException|InstantiationException|InvocationTargetException|
+        NoSuchMethodException e) {
       throw new ObjectDbException(e);
     }
   }
@@ -72,6 +73,7 @@ public class EntityMapper {
     Field idField;
     try {
       idField = object.getClass().getDeclaredField("id");
+      idField.setAccessible(true);
       setField(object, idField, id);
     } catch(NoSuchFieldException e) {
       // It's possible that the object has an id method for an auto-generated id (e.g. Follower).
@@ -82,11 +84,13 @@ public class EntityMapper {
   public static Object getObjectId(Object object) {
     try {
       Field idField = object.getClass().getDeclaredField("id");
+      idField.setAccessible(true);
       return idField.get(object);
     } catch(NoSuchFieldException|IllegalAccessException e) {}
 
     try {
       Method idMethod = object.getClass().getDeclaredMethod("id", null);
+      idMethod.setAccessible(true);
       return idMethod.invoke(object);
     } catch(NoSuchMethodException|IllegalAccessException|InvocationTargetException e) {
       throw new ObjectDbException(e);
@@ -103,9 +107,11 @@ public class EntityMapper {
   }
 
   private static List<Field> propertyFields(Object object) {
-    return asList(object.getClass().getDeclaredFields()).stream().filter(
+    List<Field> fields = asList(object.getClass().getDeclaredFields()).stream().filter(
         f -> f.getName() != "id" && DATASTORE_TYPES.contains(f.getType())
     ).collect(Collectors.toList());
+    fields.forEach(f -> f.setAccessible(true));
+    return fields;
   }
 
   private static void setPropertyFromObject(Entity.Builder builder, Field field, Object object) {

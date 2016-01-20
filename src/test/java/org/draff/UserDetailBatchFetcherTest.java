@@ -1,6 +1,5 @@
-import org.draff.UserDetailBatchFetcher;
-import org.draff.models.UserDetail;
-import org.draff.models.UserDetailRequest;
+package org.draff;
+
 import org.draff.objectdb.DatastoreDb;
 import org.draff.support.TestDatastore;
 import org.junit.Before;

@@ -1,11 +1,11 @@
-package org.draff.models;
+package org.draff;
 
 /**
  * Created by dave on 1/1/16.
  */
 public class Follower {
-  public long userId;
-  public long followerId;
+  long userId;
+  long followerId;
 
   public Follower() {}
   public Follower(long userId, long followerId) {
@@ -13,7 +13,7 @@ public class Follower {
     this.followerId = followerId;
   }
 
-  public String id() {
+  String id() {
     // Having the key tied to userId and followerId ensures that there won't be duplicates.
     return userId + ":" + followerId;
   }

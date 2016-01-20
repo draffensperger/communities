@@ -1,7 +1,9 @@
+package org.draff;
+
 import org.draff.FollowersBatchFetcher;
-import org.draff.models.Follower;
-import org.draff.models.FollowersTracker;
-import org.draff.models.UserDetailRequest;
+import org.draff.Follower;
+import org.draff.FollowersTracker;
+import org.draff.UserDetailRequest;
 import org.draff.objectdb.DatastoreDb;
 import org.draff.support.TestDatastore;
 import org.junit.Before;
