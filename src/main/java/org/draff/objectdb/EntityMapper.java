@@ -28,7 +28,7 @@ public class EntityMapper {
       Double.class
   );
 
-  public static Entity toEntity(Object object) {
+  public static Entity toEntity(Model object) {
     if (object == null)  { return null; }
     Entity.Builder builder = Entity.newBuilder();
     setEntityKey(builder, object);
@@ -37,7 +37,7 @@ public class EntityMapper {
     return builder.build();
   }
 
-  public static <T> T fromEntity(Entity entity, Class<T> clazz) {
+  public static <T extends Model> T fromEntity(Entity entity, Class<T> clazz) {
     if (entity == null)  { return null; }
     Object object = newInstance(clazz);
     setObjectIdFromEntity(object, entity);
@@ -54,7 +54,7 @@ public class EntityMapper {
     try {
       Constructor constructor = clazz.getDeclaredConstructor(new Class[0]);
       constructor.setAccessible(true);
-      return constructor.newInstance(null);
+      return constructor.newInstance();
     } catch (IllegalAccessException|InstantiationException|InvocationTargetException|
         NoSuchMethodException e) {
       throw new ObjectDbException(e);

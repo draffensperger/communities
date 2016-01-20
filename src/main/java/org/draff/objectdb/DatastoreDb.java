@@ -34,7 +34,7 @@ public class DatastoreDb implements ObjectDb {
   }
 
   @Override
-  public void save(Object object) {
+  public void save(Model object) {
     if (object instanceof List) {
       throw new ObjectDbException("Tried to call save with a List, did you mean saveAll?");
     }
@@ -42,7 +42,7 @@ public class DatastoreDb implements ObjectDb {
   }
 
   @Override
-  public void saveAll(List<? extends Object> objects) {
+  public void saveAll(List<? extends Model> objects) {
     if (objects.isEmpty()) {
       return;
     }
@@ -59,30 +59,30 @@ public class DatastoreDb implements ObjectDb {
   }
 
   @Override
-  public <T> List<T> find(Class<T> clazz, int limit) {
+  public <T extends Model> List<T> find(Class<T> clazz, int limit) {
     return findByFilter(clazz, null, limit);
   }
 
   @Override
-  public <T> List<T> find(Class<T> clazz, Map<String, Object> fieldConstraints, int limit) {
+  public <T extends Model> List<T> find(Class<T> clazz, Map<String, Object> fieldConstraints, int limit) {
     return findByConstraints(clazz, fieldConstraints, limit);
   }
 
   @Override
-  public <T> T findOne(Class<T> clazz) {
+  public <T extends Model> T findOne(Class<T> clazz) {
     return firstOrNull(findByFilter(clazz, null, 1));
   }
 
   @Override
-  public <T> T findOne(Class<T> clazz, Map<String, Object> fieldConstraints) {
+  public <T extends Model> T findOne(Class<T> clazz, Map<String, Object> fieldConstraints) {
     return firstOrNull(findByConstraints(clazz, fieldConstraints, 1));
   }
 
-  private <T> T firstOrNull(List<T> list) {
+  private <T extends Model> T firstOrNull(List<T> list) {
     return list.isEmpty() ? null : list.get(0);
   }
 
-  private <T> List<T> findByConstraints(Class<T> clazz, Map<String, Object> fieldConstraints, int limit) {
+  private <T extends Model> List<T> findByConstraints(Class<T> clazz, Map<String, Object> fieldConstraints, int limit) {
     return findByFilter(clazz, constraintsFilter(fieldConstraints), limit);
   }
 
@@ -97,49 +97,51 @@ public class DatastoreDb implements ObjectDb {
     return makeFilter(filters).build();
   }
 
-  private <T> List<T> findByFilter(Class<T> clazz, Filter filter, int limit) {
+  private <T extends Model> List<T> findByFilter(Class<T> clazz, Filter filter, int limit) {
     return fromEntities(clazz, util.find(entityKind(clazz), filter, limit));
   }
 
   @Override
-  public <T> List<T> findByIds(Class<T> clazz, Collection<Long> ids) {
+  public <T extends Model> List<T> findByIds(Class<T> clazz, Collection<Long> ids) {
     List<Key> keys = ids.stream().map(id -> makeKey(entityKind(clazz), id).build())
         .collect(Collectors.toList());
     return fromEntities(clazz, util.findByIds(keys));
   }
 
   @Override
-  public <T> List<T> findOrderedById(Class<T> clazz, int limit, long minId) {
+  public <T extends Model> List<T> findOrderedById(Class<T> clazz, int limit, long minId) {
     return fromEntities(clazz, util.findOrderedById(entityKind(clazz), limit, minId, null));
   }
 
   @Override
-  public <T> List<T> findOrderedById(Class<T> clazz, int limit, long minId,
+  public <T extends Model> List<T> findOrderedById(Class<T> clazz, int limit, long minId,
                                      Map<String, Object> constraints) {
     return fromEntities(clazz, util.findOrderedById(entityKind(clazz), limit, minId,
         constraintsFilter(constraints)));
   }
 
-  private <T> List<T> fromEntities(Class<T> clazz, Collection<Entity> entities) {
+  private <T extends Model> List<T> fromEntities(Class<T> clazz, Collection<Entity> entities) {
     return entities.stream()
         .map(entity -> clazz.cast(fromEntity(entity, clazz))).collect(Collectors.toList());
   }
 
   @Override
-  public <T> T findById(Class<T> clazz, long id) {
+  public <T extends Model> T findById(Class<T> clazz, long id) {
     return findByIdObject(clazz, id);
   }
 
 
-  private <T> T findByIdObject(Class<T> clazz, Object id) {
+  private <T extends Model> T findByIdObject(Class<T> clazz, Object id) {
     return fromEntity(util.findById(makeKey(entityKind(clazz), id).build()), clazz);
   }
 
-  public void delete(Object object) {
+  @Override
+  public void delete(Model object) {
     util.saveDelete(objectKey(object));
   }
 
-  public void deleteAll(List<?> objects) {
+  @Override
+  public void deleteAll(List<? extends Model> objects) {
     util.saveDeletes(objects.stream().map(o -> objectKey(o)).collect(Collectors.toList()));
   }
 
@@ -152,13 +154,13 @@ public class DatastoreDb implements ObjectDb {
     return makeKey(entityKind(object.getClass()), getObjectId(object));
   }
 
-  public <T> void createOrUpdate(Class<T> clazz, long id, ObjectUpdater<T> updater) {
+  public <T extends Model> void createOrUpdate(Class<T> clazz, long id, ObjectUpdater<T> updater) {
     T object = clazz.cast(findById(clazz, id));
     object = newOrUpdatedObject(clazz, object, id, updater);
     save(object);
   }
 
-  public <T> void createOrUpdate(Class<T> clazz, List<Long> ids, ObjectUpdater<T> updater) {
+  public <T extends Model> void createOrUpdate(Class<T> clazz, List<Long> ids, ObjectUpdater<T> updater) {
     List<T> foundObjects = findByIds(clazz, ids);
     Map<Long, T> idsToFound = new HashMap<>();
     foundObjects.forEach(o -> idsToFound.put((Long)getObjectId(o), o));
@@ -169,7 +171,7 @@ public class DatastoreDb implements ObjectDb {
     saveAll(objectsToSave);
   }
 
-  private <T> T newOrUpdatedObject(Class<T> clazz, T object, long id, ObjectUpdater<T> updater) {
+  private <T extends Model> T newOrUpdatedObject(Class<T> clazz, T object, long id, ObjectUpdater<T> updater) {
     if (object == null) {
       try {
         object = clazz.newInstance();

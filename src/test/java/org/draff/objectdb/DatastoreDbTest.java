@@ -21,13 +21,13 @@ import static org.junit.Assert.assertTrue;
  * Created by dave on 1/3/16.
  */
 
-class User {
+class User implements Model {
   long id;
   long depthGoal;
   boolean followersRetrieved;
 }
 
-class Follower {
+class Follower implements Model {
   long userId;
   long followerId;
   public String id() {
@@ -35,7 +35,7 @@ class Follower {
   }
 }
 
-class FollowersCursor {
+class FollowersCursor implements Model {
   long id;
   long cursor;
 }

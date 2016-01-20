@@ -1,11 +1,13 @@
 package org.draff;
 
+import org.draff.objectdb.Model;
+
 import java.util.Date;
 
 /**
  * Created by dave on 1/7/16.
  */
-public class UserDetail {
+public class UserDetail implements Model {
   long id;
   long retrievedAt;
   String screenName;

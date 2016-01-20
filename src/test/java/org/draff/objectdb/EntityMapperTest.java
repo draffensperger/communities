@@ -1,24 +1,27 @@
 package org.draff.objectdb;
 
+import com.google.api.services.datastore.DatastoreV1.Entity;
+import com.google.api.services.datastore.DatastoreV1.Key.PathElement;
+import com.google.api.services.datastore.DatastoreV1.Value;
+
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-import static com.google.api.services.datastore.client.DatastoreHelper.*;
-import com.google.api.services.datastore.DatastoreV1.*;
-import com.google.api.services.datastore.DatastoreV1.Key.PathElement;
 import java.util.Map;
+
+import static com.google.api.services.datastore.client.DatastoreHelper.*;
+import static org.junit.Assert.*;
 
 /**
  * Created by dave on 1/2/16.
  */
 
-class TestModel {
+class TestModel implements Model {
   long id;
   String stringProp;
   long longProp;
 }
 
-class TestModelWithIdMethod {
+class TestModelWithIdMethod implements Model {
   String stringProp;
   long longProp;
   public String id() {
