@@ -1,18 +1,12 @@
 package org.draff;
 
-import com.google.api.services.datastore.client.Datastore;
-
-import com.google.api.services.datastore.client.DatastoreFactory;
-import com.google.api.services.datastore.client.DatastoreHelper;
-
-import org.draff.objectdb.DatastoreDb;
 import org.draff.objectdb.ObjectDb;
 
-import twitter4j.*;
+import twitter4j.RateLimitStatus;
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.util.*;
+import java.util.Map;
 
 /**
  * Created by dave on 1/14/16.
@@ -24,10 +18,6 @@ public class TwitterGraphFetcher {
   public TwitterGraphFetcher(ObjectDb objectDb, Twitter twitter) {
     this.objectDb = objectDb;
     this.twitter = twitter;
-  }
-
-  public static TwitterGraphFetcher configureFromEnv() throws GeneralSecurityException, IOException {
-    return new TwitterGraphFetcher(new DatastoreDb(datastoreFromEnv()), twitterFromEnv());
   }
 
   public void runFetch() {
@@ -76,13 +66,5 @@ public class TwitterGraphFetcher {
         userDetailFetcherThread.interrupt();
       }
     });
-  }
-
-  private static Datastore datastoreFromEnv() throws GeneralSecurityException, IOException {
-    return DatastoreFactory.get().create(DatastoreHelper.getOptionsFromEnv().build());
-  }
-
-  private static Twitter twitterFromEnv() {
-    return new TwitterFactory().getInstance();
   }
 }

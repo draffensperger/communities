@@ -8,6 +8,7 @@ import twitter4j.RateLimitStatus;
 public class RateLimit {
   // Twitter rate limits reset every 15 minutes
   private static final long PERIOD_LENGTH_MS = 15 * 60 * 1000;
+  private static final long RATE_LIMIT_MARGIN = 5 * 1000;
 
   private int limitPerPeriod;
   private int remaining;
@@ -16,9 +17,11 @@ public class RateLimit {
 
   public RateLimit(RateLimitStatus initialStatus) {
     this.limitPerPeriod = initialStatus.getLimit();
-    this.initialResetTime = initialStatus.getResetTimeInSeconds() * 1000L - PERIOD_LENGTH_MS;
     this.remaining = initialStatus.getRemaining();
     this.lastPerformedTime = System.currentTimeMillis();
+
+    long msSinceLastReset = PERIOD_LENGTH_MS - initialStatus.getSecondsUntilReset() * 1000L;
+    this.initialResetTime = System.currentTimeMillis() - msSinceLastReset + RATE_LIMIT_MARGIN;
   }
 
   public boolean hasRemaining() {
