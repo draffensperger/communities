@@ -1,9 +1,5 @@
 package org.draff;
 
-import org.draff.FollowersBatchFetcher;
-import org.draff.Follower;
-import org.draff.FollowersTracker;
-import org.draff.UserDetailRequest;
 import org.draff.objectdb.DatastoreDb;
 import org.draff.support.TestDatastore;
 import org.junit.Before;
@@ -49,19 +45,17 @@ public class FollowersBatchFetcherTest {
     assertEquals(false, updatedTracker.followersRetrieved);
     assertEquals(1001L, updatedTracker.followersCursor);
 
-    List<Follower> followers = db.find(Follower.class, 2);
-    followers.sort((f1, f2) -> f1.id().compareTo(f2.id()));
+    List<Follower> followers = db.findChildren(tracker, Follower.class);
+    followers.sort((f1, f2) -> Long.compare(f1.id, f2.id));
     assertEquals(2, followers.size());
 
     Follower follower0 = followers.get(0);
-    assertEquals("1:2", follower0.id());
-    assertEquals(1L, follower0.userId);
-    assertEquals(2L, follower0.followerId);
+    assertEquals(1L, follower0.parent.id);
+    assertEquals(2L, follower0.id);
 
     Follower follower1 = followers.get(1);
-    assertEquals("1:3", follower1.id());
-    assertEquals(1L, follower1.userId);
-    assertEquals(3L, follower1.followerId);
+    assertEquals(1L, follower1.parent.id);
+    assertEquals(3L, follower1.id);
   }
 
   @Test

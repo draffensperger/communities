@@ -4,13 +4,11 @@ import com.google.api.services.datastore.DatastoreV1.*;
 import com.google.api.services.datastore.client.Datastore;
 import com.google.api.services.datastore.client.DatastoreException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.google.api.services.datastore.client.DatastoreHelper.makeFilter;
-import static com.google.api.services.datastore.client.DatastoreHelper.makeKey;
-import static com.google.api.services.datastore.client.DatastoreHelper.makeValue;
-import static com.google.api.services.datastore.client.DatastoreHelper.makeOrder;
+import static com.google.api.services.datastore.client.DatastoreHelper.*;
 
 /**
  * Created by dave on 1/3/16.
@@ -87,24 +85,21 @@ public class DatastoreUtil {
         makeValue(makeKey(parentKind, parentId))));
 
     RunQueryRequest request = RunQueryRequest.newBuilder().setQuery(query).build();
-
-    try {
-      return datastore.runQuery(request).getBatch().getEntityResultList().stream()
-          .map(result -> result.getEntity()).collect(Collectors.toList());
-    } catch(DatastoreException e) {
-      e.printStackTrace();
-      return null;
-    }
+    return results(request);
   }
 
   private List<Entity> results(RunQueryRequest request) {
     try {
-      RunQueryResponse response = datastore.runQuery(request);
-      return response.getBatch().getEntityResultList().stream()
-          .map(r -> r.getEntity()).collect(Collectors.toList());
+      List<Entity> entities = new ArrayList<>();
+      QueryResultBatch batch;
+      do {
+        batch = datastore.runQuery(request).getBatch();
+        entities.addAll(batch.getEntityResultList().stream()
+            .map(r -> r.getEntity()).collect(Collectors.toList()));
+      } while(batch.getMoreResults() == QueryResultBatch.MoreResultsType.NOT_FINISHED);
+      return entities;
     } catch (DatastoreException e) {
-      e.printStackTrace();
-      return null;
+      throw new ObjectDbException(e);
     }
   }
 
@@ -148,13 +143,6 @@ public class DatastoreUtil {
     }
 
     RunQueryRequest request = RunQueryRequest.newBuilder().setQuery(query).build();
-
-    try {
-      return datastore.runQuery(request).getBatch().getEntityResultList().stream()
-          .map(result -> result.getEntity()).collect(Collectors.toList());
-    } catch(DatastoreException e) {
-      e.printStackTrace();
-      return null;
-    }
+    return results(request);
   }
 }

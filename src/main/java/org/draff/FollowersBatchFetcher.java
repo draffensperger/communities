@@ -48,7 +48,7 @@ public class FollowersBatchFetcher {
     System.out.println("Fetching followers batch for userid: " + tracker.id);
     try {
       IDs followerIds = friendsFollowers.getFollowersIDs(tracker.id, tracker.followersCursor);
-      saveFollowers(tracker.id, followerIds.getIDs());
+      saveFollowers(tracker, followerIds.getIDs());
       updateFollowersCursor(tracker, followerIds);
       return followerIds.getIDs();
     } catch(TwitterException exception) {
@@ -78,10 +78,10 @@ public class FollowersBatchFetcher {
     }
   }
 
-  private void saveFollowers(long userId, long[] followerIds) {
+  private void saveFollowers(FollowersTracker tracker, long[] followerIds) {
     List<Follower> followers = new ArrayList<>(followerIds.length);
     for (long followerId : followerIds) {
-      followers.add(new Follower(userId, followerId));
+      followers.add(new Follower(tracker, followerId));
     }
     db.saveAll(followers);
   }
