@@ -1,9 +1,5 @@
 package org.draff;
 
-import org.draff.FollowersGoalUpdater;
-import org.draff.FollowersGoal;
-import org.draff.FollowersTracker;
-import org.draff.UserDetail;
 import org.draff.objectdb.DatastoreDb;
 import org.draff.support.TestDatastore;
 import org.junit.Before;
@@ -57,7 +53,7 @@ public class FollowersGoalUpdaterTest {
 
     UserDetail userDetail1 = db.findById(UserDetail.class, 10);
     assertNotNull(userDetail1);
-    assertEquals("user1", userDetail1.screenName);
+    assertEquals("User1", userDetail1.screenName);
 
     UserDetail userDetail2 = db.findById(UserDetail.class, 20);
     assertNotNull(userDetail2);
@@ -74,7 +70,7 @@ public class FollowersGoalUpdaterTest {
 
   private UsersResources mockUserResources() throws TwitterException {
     List<User> users = new ArrayList<>();
-    String user1JSON = "{\"id\":10,\"screen_name\":\"user1\"}";
+    String user1JSON = "{\"id\":10,\"screen_name\":\"User1\"}";
     String user2JSON = "{\"id\":20,\"screen_name\":\"user2\"}";
     users.add(TwitterObjectFactory.createUser(user1JSON));
     users.add(TwitterObjectFactory.createUser(user2JSON));

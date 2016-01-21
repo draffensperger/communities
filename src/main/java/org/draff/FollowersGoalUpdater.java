@@ -52,9 +52,9 @@ public class FollowersGoalUpdater {
 
   private void updateFollowersTrackers(List<User> users, List<FollowersGoal> trackers) {
     Map<String, Long> screenNamesToIds = new HashMap<>();
-    users.forEach(u -> screenNamesToIds.put(u.getScreenName(), u.getId()));
+    users.forEach(u -> screenNamesToIds.put(u.getScreenName().toLowerCase(), u.getId()));
     trackers.forEach(tracker ->
-        updateFollowersTracker(screenNamesToIds.get(tracker.id), tracker.depthGoal)
+        updateFollowersTracker(screenNamesToIds.get(tracker.id.toLowerCase()), tracker.depthGoal)
     );
   }
 

@@ -38,6 +38,11 @@ public class Main {
       System.out.println("Total users: " + aggregates.usersTotal());
       System.out.println("Avg followers: " + aggregates.avgFollowers());
       System.out.println("Avg friends: " + aggregates.avgFriends());
+    } else if (command.equals("goal")) {
+      FollowersGoal goal = new FollowersGoal();
+      goal.id = args[1];
+      goal.depthGoal = Long.valueOf(args[2]);
+      db.save(goal);
     } else if (command.equals("ancestors")) {
       new AncestorExperiment(datastore).saveAncestorFollowers();
     } else {
