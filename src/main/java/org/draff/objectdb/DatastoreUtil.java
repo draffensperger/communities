@@ -78,14 +78,16 @@ public class DatastoreUtil {
     return results(request);
   }
 
-  public List<Entity> findChildren(String parentKind, Object parentId, String childKind) {
-    Query.Builder query = Query.newBuilder();
-    query.addKindBuilder().setName(childKind);
-    query.setFilter(makeFilter("__key__", PropertyFilter.Operator.HAS_ANCESTOR,
-        makeValue(makeKey(parentKind, parentId))));
+  public List<Entity> findChildren(String parentKind, Object parentId, String childKind, int limit,
+                                   long minId) {
+    Filter ancestorFilter = makeFilter("__key__", PropertyFilter.Operator.HAS_ANCESTOR,
+        makeValue(makeKey(parentKind, parentId))).build();
 
-    RunQueryRequest request = RunQueryRequest.newBuilder().setQuery(query).build();
-    return results(request);
+    Filter minKeyFilter = makeFilter("__key__", PropertyFilter.Operator.GREATER_THAN_OR_EQUAL,
+        makeValue(makeKey(parentKind, parentId, childKind, minId))).build();
+
+    return findOrderedById(childKind, limit, minId,
+        makeFilter(ancestorFilter, minKeyFilter).build());
   }
 
   private List<Entity> results(RunQueryRequest request) {
@@ -136,6 +138,7 @@ public class DatastoreUtil {
 
     Filter minKeyFilter = makeFilter("__key__", PropertyFilter.Operator.GREATER_THAN_OR_EQUAL,
         makeValue(makeKey(kind, minId))).build();
+
     if (constraintsFilter == null) {
       query.setFilter(minKeyFilter);
     } else {

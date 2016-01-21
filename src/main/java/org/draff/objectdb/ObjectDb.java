@@ -11,7 +11,7 @@ import java.util.Map;
 public interface ObjectDb {
   void save(Model object);
   void saveAll(List<? extends Model> objects);
-  <T extends Model> List<T> findChildren(Model parent, Class<T> childClazz);
+  <T extends Model> List<T> findChildren(Model parent, Class<T> childClazz, int limit, long minId);
   <T extends Model> void createOrUpdate(Class<T> clazz, long id, ObjectUpdater<T> updater);
   <T extends Model> void createOrUpdate(Class<T> clazz, List<Long> ids, ObjectUpdater<T> updater);
   <T extends Model> List<T> find(Class<T> clazz, int limit);

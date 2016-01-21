@@ -48,9 +48,10 @@ public class DatastoreDb implements ObjectDb {
   }
 
   @Override
-  public <T extends Model> List<T> findChildren(Model parent, Class<T> clazz) {
-    List<T> models = fromEntities(clazz, util.findChildren(entityKind(parent.getClass()),
-        getObjectId(parent), entityKind(clazz)));
+  public <T extends Model> List<T> findChildren(Model parent, Class<T> clazz, int limit, long minId) {
+    List<Entity> entities = util.findChildren(entityKind(parent.getClass()),
+        getObjectId(parent), entityKind(clazz), limit, minId);
+    List<T> models = fromEntities(clazz, entities);
     setParents(models, parent);
     return models;
   }

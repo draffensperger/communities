@@ -165,7 +165,7 @@ public class DatastoreDbTest {
     db.save(user);
     waitForEventualSave(User.class);
 
-    assertTrue(db.findChildren(user, Friend.class).isEmpty());
+    assertTrue(db.findChildren(user, Friend.class, 1, Long.MIN_VALUE).isEmpty());
     Friend friend1 = new Friend();
     friend1.parent = user;
     friend1.id = 4L;
@@ -180,7 +180,7 @@ public class DatastoreDbTest {
     try {
       Thread.sleep(500);
     } catch(InterruptedException e) {}
-    List<Friend> friends = db.findChildren(user, Friend.class);
+    List<Friend> friends = db.findChildren(user, Friend.class, 3, Long.MIN_VALUE);
     friends.sort((f1, f2) -> Long.compare(f1.id, f2.id));
     assertEquals(2, friends.size());
 

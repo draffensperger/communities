@@ -45,7 +45,7 @@ public class FollowersBatchFetcherTest {
     assertEquals(false, updatedTracker.followersRetrieved);
     assertEquals(1001L, updatedTracker.followersCursor);
 
-    List<Follower> followers = db.findChildren(tracker, Follower.class);
+    List<Follower> followers = db.findChildren(tracker, Follower.class, 3, Long.MIN_VALUE);
     followers.sort((f1, f2) -> Long.compare(f1.id, f2.id));
     assertEquals(2, followers.size());
 

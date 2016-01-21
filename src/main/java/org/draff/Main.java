@@ -43,6 +43,9 @@ public class Main {
       goal.id = args[1];
       goal.depthGoal = Long.valueOf(args[2]);
       db.save(goal);
+    } else if (command.equals("compare")) {
+      FollowersComparer comparer = new FollowersComparer(db, args[1], args[2]);
+      comparer.printCompareResults();
     } else if (command.equals("ancestors")) {
       new AncestorExperiment(datastore).saveAncestorFollowers();
     } else {
