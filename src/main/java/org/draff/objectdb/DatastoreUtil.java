@@ -34,15 +34,6 @@ public class DatastoreUtil {
       i += MAX_ENTITIES_PER_BATCH;
     }
     saveUpsertBatch(entities.subList(i, entities.size()));
-
-//    // Datastore will only allow so many inserts in a given batch
-//    if (entities.size() <= MAX_ENTITIES_PER_BATCH) {
-//      saveUpsertBatch(entities);
-//    } else {
-//      saveUpsertBatch(entities.subList(0, MAX_ENTITIES_PER_BATCH));
-//      saveUpserts(entities.subList(MAX_ENTITIES_PER_BATCH, entities.size()));
-//    }
-
   }
 
   private void saveUpsertBatch(List<Entity> entities) {
@@ -87,6 +78,23 @@ public class DatastoreUtil {
     q.setLimit(limit);
     RunQueryRequest request = RunQueryRequest.newBuilder().setQuery(q.build()).build();
     return results(request);
+  }
+
+  public List<Entity> findChildren(String parentKind, Object parentId, String childKind) {
+    Query.Builder query = Query.newBuilder();
+    query.addKindBuilder().setName(childKind);
+    query.setFilter(makeFilter("__key__", PropertyFilter.Operator.HAS_ANCESTOR,
+        makeValue(makeKey(parentKind, parentId))));
+
+    RunQueryRequest request = RunQueryRequest.newBuilder().setQuery(query).build();
+
+    try {
+      return datastore.runQuery(request).getBatch().getEntityResultList().stream()
+          .map(result -> result.getEntity()).collect(Collectors.toList());
+    } catch(DatastoreException e) {
+      e.printStackTrace();
+      return null;
+    }
   }
 
   private List<Entity> results(RunQueryRequest request) {

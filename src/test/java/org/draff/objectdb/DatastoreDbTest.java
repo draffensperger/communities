@@ -40,6 +40,11 @@ class FollowersCursor implements Model {
   long cursor;
 }
 
+class Friend implements Model {
+  User parent;
+  long id;
+}
+
 public class DatastoreDbTest {
   private DatastoreDb db;
 
@@ -151,5 +156,38 @@ public class DatastoreDbTest {
     assertNotNull(found);
     assertEquals(8, found.id);
     assertEquals(5, found.depthGoal);
+  }
+
+  @Test
+  public void testSaveAndFindChildren() {
+    User user = new User();
+    user.id = 1L;
+    db.save(user);
+    waitForEventualSave(User.class);
+
+    assertTrue(db.findChildren(user, Friend.class).isEmpty());
+    Friend friend1 = new Friend();
+    friend1.parent = user;
+    friend1.id = 4L;
+
+    Friend friend2 = new Friend();
+    friend2.parent = user;
+    friend2.id = 5L;
+
+    db.saveAll(Arrays.asList(friend1, friend2));
+    waitForEventualSave(Friend.class);
+
+    try {
+      Thread.sleep(500);
+    } catch(InterruptedException e) {}
+    List<Friend> friends = db.findChildren(user, Friend.class);
+    friends.sort((f1, f2) -> Long.compare(f1.id, f2.id));
+    assertEquals(2, friends.size());
+
+    assertEquals(4L, friends.get(0).id);
+    assertEquals(1L, friends.get(0).parent.id);
+
+    assertEquals(5L, friends.get(1).id);
+    assertEquals(1L, friends.get(1).parent.id);
   }
 }

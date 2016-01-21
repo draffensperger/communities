@@ -62,7 +62,20 @@ public class EntityMapper {
   }
 
   private static void setEntityKey(Entity.Builder builder, Object object) {
-    builder.setKey(makeKey(entityKind(object.getClass()), getObjectId(object)));
+    try {
+      Field parentField = object.getClass().getDeclaredField("parent");
+      parentField.setAccessible(true);
+      try {
+        Model parent = (Model) parentField.get(object);
+        builder.setKey(makeKey(entityKind(parent.getClass()), getObjectId(parent),
+            entityKind(object.getClass()), getObjectId(object)));
+      } catch(ClassCastException|IllegalAccessException e) {
+        throw new ObjectDbException(e);
+      }
+    } catch(NoSuchFieldException e) {
+      // For entities that don't have a parent set, just use their direct id as a key
+      builder.setKey(makeKey(entityKind(object.getClass()), getObjectId(object)));
+    }
   }
 
   private static void setObjectIdFromEntity(Object object, Entity entity) {
@@ -98,7 +111,8 @@ public class EntityMapper {
   }
 
   private static Object getEntityId(Entity entity) {
-    Key.PathElement pathElement = entity.getKey().getPathElement(0);
+    Key key = entity.getKey();
+    Key.PathElement pathElement = key.getPathElement(key.getPathElementCount() - 1);
     if (pathElement.hasId()) {
       return pathElement.getId();
     } else {
@@ -108,7 +122,8 @@ public class EntityMapper {
 
   private static List<Field> propertyFields(Object object) {
     List<Field> fields = asList(object.getClass().getDeclaredFields()).stream().filter(
-        f -> f.getName() != "id" && DATASTORE_TYPES.contains(f.getType())
+        f -> f.getName() != "id" && f.getName() != "parent"
+            && DATASTORE_TYPES.contains(f.getType())
     ).collect(Collectors.toList());
     fields.forEach(f -> f.setAccessible(true));
     return fields;

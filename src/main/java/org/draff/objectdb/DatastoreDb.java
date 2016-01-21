@@ -1,25 +1,15 @@
 package org.draff.objectdb;
 
-import com.google.api.services.datastore.DatastoreV1.Entity;
-import com.google.api.services.datastore.DatastoreV1.Filter;
-import com.google.api.services.datastore.DatastoreV1.Key;
-import com.google.api.services.datastore.DatastoreV1.PropertyFilter;
+import com.google.api.services.datastore.DatastoreV1.*;
 import com.google.api.services.datastore.client.Datastore;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.Field;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.google.api.services.datastore.client.DatastoreHelper.makeFilter;
 import static com.google.api.services.datastore.client.DatastoreHelper.makeKey;
-import static org.draff.objectdb.EntityMapper.entityKind;
-import static org.draff.objectdb.EntityMapper.fromEntity;
-import static org.draff.objectdb.EntityMapper.getObjectId;
-import static org.draff.objectdb.EntityMapper.toEntity;
-import static org.draff.objectdb.EntityMapper.toValue;
+import static org.draff.objectdb.EntityMapper.*;
 
 /**
  * Created by dave on 1/1/16.
@@ -42,20 +32,43 @@ public class DatastoreDb implements ObjectDb {
   }
 
   @Override
-  public void saveAll(List<? extends Model> objects) {
-    if (objects.isEmpty()) {
+  public void saveAll(List<? extends Model> models) {
+    if (models.isEmpty()) {
       return;
     }
     long start = System.nanoTime();
-    List<Entity> entities = objects.stream()
-        .map(o -> toEntity(o)).collect(Collectors.toList());
-    System.out.println("  converting " + objects.size() + " objects to entities took " +
+    List<Entity> entities = toEntities(models);
+    System.out.println("  converting " + models.size() + " objects to entities took " +
         (System.nanoTime() - start)/1000000 + " ms");
 
     start = System.nanoTime();
     util.saveUpserts(entities);
-    System.out.println("  saving " + objects.size() + " upserts took " +
+    System.out.println("  saving " + models.size() + " upserts took " +
         (System.nanoTime() - start)/1000000 + " ms");
+  }
+
+  @Override
+  public <T extends Model> List<T> findChildren(Model parent, Class<T> clazz) {
+    List<T> models = fromEntities(clazz, util.findChildren(entityKind(parent.getClass()),
+        getObjectId(parent), entityKind(clazz)));
+    setParents(models, parent);
+    return models;
+  }
+
+  private void setParents(List<? extends Model> children, Model parent) {
+    if (children.isEmpty()) {
+      return;
+    }
+    Class childClass = children.get(0).getClass();
+    try {
+      Field parentField = childClass.getDeclaredField("parent");
+      parentField.setAccessible(true);
+      for (Model child : children) {
+        parentField.set(child, parent);
+      }
+    } catch(NoSuchFieldException|IllegalAccessException e) {
+      throw new ObjectDbException(e);
+    }
   }
 
   @Override
@@ -123,6 +136,10 @@ public class DatastoreDb implements ObjectDb {
   private <T extends Model> List<T> fromEntities(Class<T> clazz, Collection<Entity> entities) {
     return entities.stream()
         .map(entity -> clazz.cast(fromEntity(entity, clazz))).collect(Collectors.toList());
+  }
+
+  private List<Entity> toEntities(List<? extends Model> models) {
+    return models.stream().map(o -> toEntity(o)).collect(Collectors.toList());
   }
 
   @Override
