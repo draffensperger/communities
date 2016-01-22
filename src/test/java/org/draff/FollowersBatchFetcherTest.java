@@ -71,7 +71,7 @@ public class FollowersBatchFetcherTest {
     db.saveAll(Arrays.asList(existingTracker1, existingTracker2));
     waitForEventualSave(FollowersTracker.class);
 
-    UserDetailRequest existingDetailRequest = new UserDetailRequest();
+    UserDetailRequestById existingDetailRequest = new UserDetailRequestById();
     existingDetailRequest.id = 2L;
     existingDetailRequest.detailRetrieved = true;
     db.save(existingDetailRequest);
@@ -82,16 +82,16 @@ public class FollowersBatchFetcherTest {
     List<Follower> followers = db.find(Follower.class, 3);
     assertEquals(2, followers.size());
 
-    List<UserDetailRequest> detailRequests = db.find(UserDetailRequest.class, 3);
+    List<UserDetailRequestById> detailRequests = db.find(UserDetailRequestById.class, 3);
     assertEquals(2, detailRequests.size());
     detailRequests.sort((d1, d2) -> Long.compare(d1.id, d2.id));
 
-    UserDetailRequest detailRequest1 = detailRequests.get(0);
+    UserDetailRequestById detailRequest1 = detailRequests.get(0);
     assertEquals(2L, detailRequest1.id);
     // check that it kept the existing retrieved detail request for user 2 marked as retrieved
     assertTrue(detailRequest1.detailRetrieved);
 
-    UserDetailRequest detailRequest2 = detailRequests.get(1);
+    UserDetailRequestById detailRequest2 = detailRequests.get(1);
     assertEquals(3L, detailRequest2.id);
     // check that the new detail request for user 3 is marked as not retrieved
     assertFalse(detailRequest2.detailRetrieved);

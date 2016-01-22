@@ -31,14 +31,14 @@ public class UserDetailBatchFetcherTest {
 
   @Test
   public void testRetrieveUserIdsBatchDetails() throws TwitterException {
-    UserDetailRequest request1 = new UserDetailRequest();
+    UserDetailRequestById request1 = new UserDetailRequestById();
     request1.id = 10;
-    UserDetailRequest request2 = new UserDetailRequest();
+    UserDetailRequestById request2 = new UserDetailRequestById();
     request2.id = 20;
-    UserDetailRequest request3 = new UserDetailRequest();
+    UserDetailRequestById request3 = new UserDetailRequestById();
     request3.id = 30;
     db.saveAll(Arrays.asList(request1, request2, request3));
-    waitForEventualSave(UserDetailRequest.class);
+    waitForEventualSave(UserDetailRequestById.class);
 
     UserDetail existingDetail = new UserDetail();
     existingDetail.id = 30;
@@ -49,7 +49,7 @@ public class UserDetailBatchFetcherTest {
     UserDetailBatchFetcher retriever = new UserDetailBatchFetcher(db, mockUserResources());
     retriever.fetchUserDetailsBatch();
 
-    List<UserDetailRequest> requests = db.find(UserDetailRequest.class, 4);
+    List<UserDetailRequestById> requests = db.find(UserDetailRequestById.class, 4);
     assertEquals(3, requests.size());
     requests.forEach(request -> assertTrue(request.detailRetrieved));
 

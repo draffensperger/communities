@@ -56,7 +56,11 @@
             <artifactId>google-api-services-datastore</artifactId>
             <version>v1beta2-rev26-1.21.0</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <version>1.2</version>
+        </dependency>
 
         <dependency>
             <groupId>junit</groupId>

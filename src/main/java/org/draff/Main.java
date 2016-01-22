@@ -46,6 +46,8 @@ public class Main {
     } else if (command.equals("compare")) {
       FollowersComparer comparer = new FollowersComparer(db, args[1], args[2]);
       comparer.printCompareResults();
+    } else if (command.equals("load-communities")) {
+      new EmbeddedCommunityLoader(db, args[1]).loadEmbeddedCommunities();
     } else if (command.equals("ancestors")) {
       new AncestorExperiment(datastore).saveAncestorFollowers();
     } else {

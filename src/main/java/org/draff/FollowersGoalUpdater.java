@@ -72,9 +72,9 @@ public class FollowersGoalUpdater {
   private void saveUserDetails(List<User> users) {
     db.saveAll(users.stream().map(u -> new UserDetail(u)).collect(Collectors.toList()));
 
-    // Mark these users as retrieved in the UserDetailRequest table so they won't be re-retrieved
+    // Mark these users as retrieved in the UserDetailRequestById table so they won't be re-retrieved
     // later on.
     List<Long> ids = users.stream().map(u -> u.getId()).collect(Collectors.toList());
-    db.createOrUpdate(UserDetailRequest.class, ids, request -> request.detailRetrieved = true);
+    db.createOrUpdate(UserDetailRequestById.class, ids, request -> request.detailRetrieved = true);
   }
 }
