@@ -97,7 +97,7 @@ public class FollowersBatchFetcher {
 
   private void addLevel2TrackersIfNeeded(FollowersTracker tracker, long[] friendOrFollowerIds) {
     if (tracker.shouldRetrieveLevel2Followers) {
-      db.createOrUpdate(FollowersTracker.class, Longs.asList(friendOrFollowerIds), level2Tracker -> {
+      db.createOrUpdateByIds(FollowersTracker.class, Longs.asList(friendOrFollowerIds), level2Tracker -> {
         level2Tracker.shouldRetrieveFollowers = tracker.shouldRetrieveLevel2Followers;
       });
 
@@ -108,6 +108,6 @@ public class FollowersBatchFetcher {
   private void addUserDetailRequests(long[] userIds) {
     // Leave existing user detail requests as is, but create new ones with the detault value of
     // false for the detailRetrieved field.
-    db.createOrUpdate(UserDetailRequestById.class, Longs.asList(userIds), null);
+    db.createOrUpdateByIds(UserDetailRequestById.class, Longs.asList(userIds), null);
   }
 }

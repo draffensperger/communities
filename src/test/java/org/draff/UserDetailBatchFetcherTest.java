@@ -30,14 +30,11 @@ public class UserDetailBatchFetcherTest {
   }
 
   @Test
-  public void testRetrieveUserIdsBatchDetails() throws TwitterException {
-    UserDetailRequestById request1 = new UserDetailRequestById();
-    request1.id = 10;
-    UserDetailRequestById request2 = new UserDetailRequestById();
-    request2.id = 20;
-    UserDetailRequestById request3 = new UserDetailRequestById();
-    request3.id = 30;
-    db.saveAll(Arrays.asList(request1, request2, request3));
+  public void testRetrieveUserDetailsById() throws TwitterException {
+    db.saveAll(Arrays.asList(
+        new UserDetailRequestById(10), new UserDetailRequestById(20),
+        new UserDetailRequestById(30)
+    ));
     waitForEventualSave(UserDetailRequestById.class);
 
     UserDetail existingDetail = new UserDetail();
@@ -46,8 +43,7 @@ public class UserDetailBatchFetcherTest {
     db.save(existingDetail);
     waitForEventualSave(UserDetail.class);
 
-    UserDetailBatchFetcher retriever = new UserDetailBatchFetcher(db, mockUserResources());
-    retriever.fetchUserDetailsBatch();
+    new UserDetailBatchFetcher(db, mockUserResources()).fetchUserDetailsBatch();
 
     List<UserDetailRequestById> requests = db.find(UserDetailRequestById.class, 4);
     assertEquals(3, requests.size());
@@ -64,6 +60,24 @@ public class UserDetailBatchFetcherTest {
     UserDetail detail3 = db.findById(UserDetail.class, 30);
     assertNotNull(detail3);
     assertEquals("user3", detail3.screenName);
+  }
+
+  @Test
+  public void testRetrieveUserDetailsByName() throws TwitterException {
+    db.saveAll(Arrays.asList(
+        new UserDetailRequestByName("user1"), new UserDetailRequestByName("user2")
+    ));
+    waitForEventualSave(UserDetailRequestByName.class);
+
+    new UserDetailBatchFetcher(db, mockUserResources()).fetchUserDetailsBatch();
+    waitForEventualSave(UserDetail.class);
+
+    assertEquals("user1", db.findById(UserDetail.class, 10L).screenName);
+    assertEquals("user2", db.findById(UserDetail.class, 20L).screenName);
+
+    List<UserDetailRequestByName> requests = db.find(UserDetailRequestByName.class, 4);
+    assertEquals(2, requests.size());
+    requests.forEach(request -> assertTrue(request.detailRetrieved));
   }
 
   private UsersResources mockUserResources() throws TwitterException {

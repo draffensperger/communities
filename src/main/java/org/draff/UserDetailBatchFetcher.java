@@ -28,20 +28,35 @@ public class UserDetailBatchFetcher {
     this.twitterUsers = users;
   }
 
-  public void fetchUserDetailsBatch() {
-    try {
-      long[] neededIds = neededUserIdsBatch();
-      if (neededIds.length == 0) {
-        return;
+  public void fetchUserDetailsBatch() throws TwitterException {
+    String[] names = neededUserNamesBatch();
+    if (names.length > 0) {
+      fetchUsersByNames(names);
+    } else {
+      long[] ids = neededUserIdsBatch();
+      if (ids.length > 0) {
+        fetchUsersByIds(ids);
       }
-      System.out.println("Fetching user details for " + neededIds.length + " users.");
-      List<User> users = twitterUsers.lookupUsers(neededIds);
-      saveUserDetails(users);
-      db.createOrUpdate(UserDetailRequestById.class, Longs.asList(neededIds),
-          request -> request.detailRetrieved = true);
-    } catch (TwitterException e) {
-      e.printStackTrace();
     }
+  }
+
+  private void fetchUsersByNames(String[] names) throws TwitterException {
+    System.out.println("Fetching user details for " + names.length + " user names.");
+    saveUserDetails(twitterUsers.lookupUsers(names));
+    db.createOrUpdateByNames(UserDetailRequestByName.class, Arrays.asList(names),
+        request -> request.detailRetrieved = true);
+  }
+
+  private void fetchUsersByIds(long[] ids) throws TwitterException {
+    System.out.println("Fetching user details for " + ids.length + " user ids.");
+    saveUserDetails(twitterUsers.lookupUsers(ids));
+    db.createOrUpdateByIds(UserDetailRequestById.class, Longs.asList(ids),
+        request -> request.detailRetrieved = true);
+  }
+
+  private String[] neededUserNamesBatch() {
+    return db.find(UserDetailRequestByName.class, DETAIL_NOT_RETRIEVED, BATCH_SIZE)
+        .stream().map(request -> request.id).toArray(String[]::new);
   }
 
   private long[] neededUserIdsBatch() {
@@ -68,7 +83,7 @@ public class UserDetailBatchFetcher {
         .map(detail -> detail.id).collect(Collectors.toList());
 
     // Since there are already UserDetail records for those request ids, mark those as retrieved.
-    db.createOrUpdate(UserDetailRequestById.class, existingIds, req -> req.detailRetrieved = true);
+    db.createOrUpdateByIds(UserDetailRequestById.class, existingIds, req -> req.detailRetrieved = true);
 
     requestIds.removeAll(existingIds);
 

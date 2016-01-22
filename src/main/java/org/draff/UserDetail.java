@@ -11,6 +11,7 @@ public class UserDetail implements Model {
   long id;
   long retrievedAt;
   String screenName;
+  String screenNameLower;
   String location;
   String description;
   String url;
@@ -52,6 +53,7 @@ public class UserDetail implements Model {
 
     id = u.getId();
     screenName = u.getScreenName();
+    screenNameLower = screenName.toLowerCase();
     location = u.getLocation();
     description = u.getDescription();
     url = u.getURL();

@@ -59,7 +59,7 @@ public class FollowersGoalUpdater {
   }
 
   private void updateFollowersTracker(long userId, long depthGoal) {
-    db.createOrUpdate(FollowersTracker.class, userId, tracker -> {
+    db.createOrUpdateById(FollowersTracker.class, userId, tracker -> {
       if (depthGoal >= 1) {
         tracker.shouldRetrieveFollowers = true;
       }
@@ -75,6 +75,6 @@ public class FollowersGoalUpdater {
     // Mark these users as retrieved in the UserDetailRequestById table so they won't be re-retrieved
     // later on.
     List<Long> ids = users.stream().map(u -> u.getId()).collect(Collectors.toList());
-    db.createOrUpdate(UserDetailRequestById.class, ids, request -> request.detailRetrieved = true);
+    db.createOrUpdateByIds(UserDetailRequestById.class, ids, request -> request.detailRetrieved = true);
   }
 }

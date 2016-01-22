@@ -117,8 +117,17 @@ public class DatastoreDb implements ObjectDb {
 
   @Override
   public <T extends Model> List<T> findByIds(Class<T> clazz, Collection<Long> ids) {
-    List<Key> keys = ids.stream().map(id -> makeKey(entityKind(clazz), id).build())
-        .collect(Collectors.toList());
+    return findByNamesOrIds(clazz, ids);
+  }
+
+  @Override
+  public <T extends Model> List<T> findByNames(Class<T> clazz, Collection<String> names) {
+    return findByNamesOrIds(clazz, names);
+  }
+
+  private <T extends Model> List<T> findByNamesOrIds(Class<T> clazz, Collection<?> namesOrIds) {
+    List<Key> keys = namesOrIds.stream()
+        .map(nameOrId -> makeKey(entityKind(clazz), nameOrId).build()).collect(Collectors.toList());
     return fromEntities(clazz, util.findByIds(keys));
   }
 
@@ -172,31 +181,44 @@ public class DatastoreDb implements ObjectDb {
     return makeKey(entityKind(object.getClass()), getObjectId(object));
   }
 
-  public <T extends Model> void createOrUpdate(Class<T> clazz, long id, ObjectUpdater<T> updater) {
+  public <T extends Model> void createOrUpdateById(Class<T> clazz, long id, ObjectUpdater<T> updater) {
     T object = clazz.cast(findById(clazz, id));
     object = newOrUpdatedObject(clazz, object, id, updater);
     save(object);
   }
 
-  public <T extends Model> void createOrUpdate(Class<T> clazz, List<Long> ids, ObjectUpdater<T> updater) {
-    List<T> foundObjects = findByIds(clazz, ids);
-    Map<Long, T> idsToFound = new HashMap<>();
-    foundObjects.forEach(o -> idsToFound.put((Long)getObjectId(o), o));
+  @Override
+  public <T extends Model> void createOrUpdateByIds(Class<T> clazz, List<Long> ids, ObjectUpdater<T> updater) {
+    createOrUpdateByNamesOrIds(clazz, ids, updater);
+  }
 
-    List<T> objectsToSave = ids.stream().map(
+  @Override
+  public <T extends Model> void createOrUpdateByNames(Class<T> clazz, List<String> names,
+                                                      ObjectUpdater<T> updater) {
+    createOrUpdateByNamesOrIds(clazz, names, updater);
+  }
+
+  public <T extends Model> void createOrUpdateByNamesOrIds(Class<T> clazz, List<?> namesOrIds,
+                                                           ObjectUpdater<T> updater) {
+    List<T> foundObjects = findByNamesOrIds(clazz, namesOrIds);
+    Map<Object, T> idsToFound = new HashMap<>();
+    foundObjects.forEach(o -> idsToFound.put(getObjectId(o), o));
+
+    List<T> objectsToSave = namesOrIds.stream().map(
         id -> newOrUpdatedObject(clazz, idsToFound.get(id), id, updater)
     ).collect(Collectors.toList());
     saveAll(objectsToSave);
   }
 
-  private <T extends Model> T newOrUpdatedObject(Class<T> clazz, T object, long id, ObjectUpdater<T> updater) {
+  private <T extends Model> T newOrUpdatedObject(Class<T> clazz, T object, Object nameOrId,
+                                                 ObjectUpdater<T> updater) {
     if (object == null) {
       try {
         object = clazz.newInstance();
       } catch (InstantiationException|IllegalAccessException e) {
         throw new ObjectDbException(e);
       }
-      EntityMapper.setObjectId(object, id);
+      EntityMapper.setObjectId(object, nameOrId);
     }
 
     if (updater != null) {
