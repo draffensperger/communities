@@ -1,5 +1,6 @@
 package org.draff.objectdb;
 
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableMap;
 
 import org.draff.support.TestDatastore;
@@ -10,22 +11,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static org.draff.support.EventualConsistencyHelper.waitForEventualSave;
 import static org.draff.support.EventualConsistencyHelper.waitForEventualDelete;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.draff.support.EventualConsistencyHelper.waitForEventualSave;
+import static org.junit.Assert.*;
 
 /**
  * Created by dave on 1/3/16.
  */
 
-class User implements Model {
-  long id;
-  long depthGoal;
-  boolean followersRetrieved;
-}
 
 class Follower implements Model {
   long userId;
@@ -40,13 +33,30 @@ class FollowersCursor implements Model {
   long cursor;
 }
 
-class Friend implements Model {
-  User parent;
-  long id;
-}
-
 public class DatastoreDbTest {
   private DatastoreDb db;
+
+  @AutoValue
+  abstract static class User implements Model {
+    abstract long id();
+    abstract long depthGoal();
+
+    static Builder builder() {
+      return new AutoValue_DatastoreDbTest_User.Builder();
+    }
+
+    @AutoValue.Builder
+    abstract static class Builder {
+      abstract Builder id(long id);
+      abstract Builder depthGoal(long goal);
+      abstract User build();
+    }
+  }
+
+  class Friend implements Model {
+    User parent;
+    long id;
+  }
 
   @Before
   public void setup() {
@@ -116,12 +126,8 @@ public class DatastoreDbTest {
 
   @Test
   public void testFindByIds() {
-    User user1 = new User();
-    user1.id = 1;
-    user1.depthGoal = 2;
-    User user2 = new User();
-    user2.id = 2;
-    user2.depthGoal = 1;
+    User user1 = User.builder().id(1).depthGoal(2).build();
+    User user2 = User.builder().id(2).depthGoal(1).build();
 
     db.saveAll(Arrays.asList(user1, user2));
     waitForEventualSave(User.class);
@@ -130,38 +136,35 @@ public class DatastoreDbTest {
     assertEquals(2, users.size());
     User found1 = users.get(0);
     User found2 = users.get(1);
-    if (found1.id > found2.id) {
+    if (found1.id() > found2.id()) {
       User temp = found1;
       found2 = found1;
       found1 = temp;
     }
 
-    assertEquals(1, found1.id);
-    assertEquals(2, found1.depthGoal);
-    assertEquals(2, found2.id);
-    assertEquals(1, found2.depthGoal);
+    assertEquals(1, found1.id());
+    assertEquals(2, found1.depthGoal());
+    assertEquals(2, found2.id());
+    assertEquals(1, found2.depthGoal());
   }
 
   @Test
   public void testFindById() {
     assertNull(db.findById(User.class, 8L));
 
-    User user = new User();
-    user.id = 8;
-    user.depthGoal = 5;
+    User user = User.builder().id(8).depthGoal(5).build();
     db.save(user);
     waitForEventualSave(User.class);
 
     User found = db.findById(User.class, 8L);
     assertNotNull(found);
-    assertEquals(8, found.id);
-    assertEquals(5, found.depthGoal);
+    assertEquals(8, found.id());
+    assertEquals(5, found.depthGoal());
   }
 
   @Test
   public void testSaveAndFindChildren() {
-    User user = new User();
-    user.id = 1L;
+    User user = User.builder().id(1L).build();
     db.save(user);
     waitForEventualSave(User.class);
 
@@ -185,9 +188,9 @@ public class DatastoreDbTest {
     assertEquals(2, friends.size());
 
     assertEquals(4L, friends.get(0).id);
-    assertEquals(1L, friends.get(0).parent.id);
+    assertEquals(1L, friends.get(0).parent.id());
 
     assertEquals(5L, friends.get(1).id);
-    assertEquals(1L, friends.get(1).parent.id);
+    assertEquals(1L, friends.get(1).parent.id());
   }
 }

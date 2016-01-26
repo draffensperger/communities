@@ -3,6 +3,7 @@ package org.draff.objectdb;
 import com.google.api.services.datastore.DatastoreV1.Entity;
 import com.google.api.services.datastore.DatastoreV1.Key.PathElement;
 import com.google.api.services.datastore.DatastoreV1.Value;
+import com.google.auto.value.AutoValue;
 
 import org.junit.Test;
 
@@ -11,33 +12,48 @@ import java.util.Map;
 import static com.google.api.services.datastore.client.DatastoreHelper.*;
 import static org.junit.Assert.*;
 
-/**
- * Created by dave on 1/2/16.
- */
+@AutoValue
+abstract class TestModel implements Model {
+  abstract long id();
+  abstract String stringProp();
+  abstract long longProp();
 
-class TestModel implements Model {
-  long id;
-  String stringProp;
-  long longProp;
-}
+  static Builder builder() {
+    return new AutoValue_TestModel.Builder();
+  }
 
-class TestModelWithIdMethod implements Model {
-  String stringProp;
-  long longProp;
-  public String id() {
-    return stringProp + ":" + longProp;
+  @AutoValue.Builder
+  abstract static class Builder {
+    abstract Builder id(long id);
+    abstract Builder stringProp(String s);
+    abstract Builder longProp(long l);
+    abstract TestModel build();
   }
 }
 
+@AutoValue
+abstract class TestModelWithIdMethod implements Model {
+  abstract String stringProp();
+  abstract long longProp();
+
+  static TestModelWithIdMethod create(String stringProp, long longProp) {
+    return new AutoValue_TestModelWithIdMethod(stringProp, longProp);
+  }
+
+  public String id() {
+    return stringProp() + ":" + longProp();
+  }
+}
+
+/**
+ * Created by dave on 1/2/16.
+ */
 public class EntityMapperTest {
   @Test
   public void testToEntityWithIdField() {
-    TestModel model = new TestModel();
-    model.id = 5;
-    model.stringProp = "hi";
-    model.longProp = -3;
+    TestModel model = TestModel.builder().id(5).stringProp("hi").longProp(-3).build();
 
-    Entity entity = EntityMapper.toEntity(model);
+    Entity entity = EntityMapperService.toEntity(model);
     Map<String, Value> props = getPropertyMap(entity);
     PathElement pathElement = entity.getKey().getPathElement(0);
     assertEquals(5, pathElement.getId());
@@ -50,11 +66,9 @@ public class EntityMapperTest {
 
   @Test
   public void testToEntityWithIdMethod() {
-    TestModelWithIdMethod model = new TestModelWithIdMethod();
-    model.stringProp = "h";
-    model.longProp = 1;
+    TestModelWithIdMethod model = TestModelWithIdMethod.create("h", 1);
 
-    Entity entity = EntityMapper.toEntity(model);
+    Entity entity = EntityMapperService.toEntity(model);
     Map<String, Value> props = getPropertyMap(entity);
     PathElement pathElement = entity.getKey().getPathElement(0);
     assertEquals("h:1", pathElement.getName());
@@ -72,10 +86,10 @@ public class EntityMapperTest {
         .addProperty(makeProperty("longProp", makeValue(-6)))
         .build();
 
-    TestModel model = EntityMapper.fromEntity(entity, TestModel.class);
-    assertEquals("str", model.stringProp);
-    assertEquals(-6, model.longProp);
-    assertEquals(5, model.id);
+    TestModel model = EntityMapperService.fromEntity(entity, TestModel.class);
+    assertEquals("str", model.stringProp());
+    assertEquals(-6, model.longProp());
+    assertEquals(5, model.id());
   }
 
   @Test
@@ -86,15 +100,15 @@ public class EntityMapperTest {
         .addProperty(makeProperty("longProp", makeValue(-6)))
         .build();
 
-    TestModelWithIdMethod model = EntityMapper.fromEntity(entity, TestModelWithIdMethod.class);
-    assertEquals("str", model.stringProp);
-    assertEquals(-6, model.longProp);
+    TestModelWithIdMethod model = EntityMapperService.fromEntity(entity, TestModelWithIdMethod.class);
+    assertEquals("str", model.stringProp());
+    assertEquals(-6, model.longProp());
     assertEquals("str:-6", model.id());
   }
 
   @Test
   public void testGivesAndReceivesNull() {
-    assertNull(EntityMapper.toEntity(null));
-    assertNull(EntityMapper.fromEntity(null, TestModel.class));
+    assertNull(EntityMapperService.toEntity(null));
+    assertNull(EntityMapperService.fromEntity(null, TestModel.class));
   }
 }

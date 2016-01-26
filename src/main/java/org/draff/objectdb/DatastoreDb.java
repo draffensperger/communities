@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 import static com.google.api.services.datastore.client.DatastoreHelper.makeFilter;
 import static com.google.api.services.datastore.client.DatastoreHelper.makeKey;
-import static org.draff.objectdb.EntityMapper.*;
+import static org.draff.objectdb.EntityMapperService.*;
 
 /**
  * Created by dave on 1/1/16.
@@ -218,7 +218,7 @@ public class DatastoreDb implements ObjectDb {
       } catch (InstantiationException|IllegalAccessException e) {
         throw new ObjectDbException(e);
       }
-      EntityMapper.setObjectId(object, nameOrId);
+      EntityMapperService.setObjectId(object, nameOrId);
     }
 
     if (updater != null) {
