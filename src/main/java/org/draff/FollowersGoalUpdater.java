@@ -66,6 +66,7 @@ public class FollowersGoalUpdater {
       if (depthGoal >= 2) {
         tracker.shouldRetrieveLevel2Followers = true;
       }
+      return tracker;
     });
   }
 
@@ -75,6 +76,7 @@ public class FollowersGoalUpdater {
     // Mark these users as retrieved in the UserDetailRequestById table so they won't be re-retrieved
     // later on.
     List<Long> ids = users.stream().map(u -> u.getId()).collect(Collectors.toList());
-    db.createOrUpdateByIds(UserDetailRequestById.class, ids, request -> request.detailRetrieved = true);
+    db.createOrUpdateByIds(UserDetailRequestById.class, ids,
+        request -> { request.detailRetrieved = true; return request; });
   }
 }

@@ -9,18 +9,23 @@ import java.util.stream.Collectors;
 
 import static com.google.api.services.datastore.client.DatastoreHelper.makeFilter;
 import static com.google.api.services.datastore.client.DatastoreHelper.makeKey;
-import static org.draff.objectdb.EntityMapperService.*;
+import static org.draff.objectdb.ValueMapper.*;
 
 /**
  * Created by dave on 1/1/16.
  */
 public class DatastoreDb implements ObjectDb {
-  private DatastoreUtil util;
-  private Datastore datastore;
+  private final DatastoreUtil util;
+  private final EntityMapper mapper;
+
+  public DatastoreDb(Datastore datastore, Map<Class, EntityMapper> customEntityMappers) {
+    this.util = new DatastoreUtil(datastore);
+    this.mapper = new CachingEntityMapper(customEntityMappers);
+  }
 
   public DatastoreDb(Datastore datastore) {
     this.util = new DatastoreUtil(datastore);
-    this.datastore = datastore;
+    this.mapper = new CachingEntityMapper();
   }
 
   @Override
@@ -28,7 +33,7 @@ public class DatastoreDb implements ObjectDb {
     if (object instanceof List) {
       throw new ObjectDbException("Tried to call save with a List, did you mean saveAll?");
     }
-    util.saveUpsert(toEntity(object));
+    util.saveUpsert(mapper.toEntity(object));
   }
 
   @Override
@@ -50,10 +55,25 @@ public class DatastoreDb implements ObjectDb {
   @Override
   public <T extends Model> List<T> findChildren(Model parent, Class<T> clazz, int limit, long minId) {
     List<Entity> entities = util.findChildren(entityKind(parent.getClass()),
-        getObjectId(parent), entityKind(clazz), limit, minId);
+        mapper.getModelId(parent), entityKind(clazz), limit, minId);
     List<T> models = fromEntities(clazz, entities);
     setParents(models, parent);
     return models;
+  }
+
+  @Override
+  public <T extends Model> void createOrUpdateById(Class<T> clazz, long id, ObjectTransformer<T> updater) {
+
+  }
+
+  @Override
+  public <T extends Model> void createOrUpdateByIds(Class<T> clazz, List<Long> ids, ObjectTransformer<T> updater) {
+
+  }
+
+  @Override
+  public <T extends Model> void createOrUpdateByNames(Class<T> clazz, List<String> names, ObjectTransformer<T> updater) {
+
   }
 
   private void setParents(List<? extends Model> children, Model parent) {
@@ -145,11 +165,11 @@ public class DatastoreDb implements ObjectDb {
 
   private <T extends Model> List<T> fromEntities(Class<T> clazz, Collection<Entity> entities) {
     return entities.stream()
-        .map(entity -> clazz.cast(fromEntity(entity, clazz))).collect(Collectors.toList());
+        .map(entity -> clazz.cast(mapper.fromEntity(entity, clazz))).collect(Collectors.toList());
   }
 
   private List<Entity> toEntities(List<? extends Model> models) {
-    return models.stream().map(o -> toEntity(o)).collect(Collectors.toList());
+    return models.stream().map(o -> mapper.toEntity(o)).collect(Collectors.toList());
   }
 
   @Override
@@ -159,7 +179,7 @@ public class DatastoreDb implements ObjectDb {
 
 
   private <T extends Model> T findByIdObject(Class<T> clazz, Object id) {
-    return fromEntity(util.findById(makeKey(entityKind(clazz), id).build()), clazz);
+    return mapper.fromEntity(util.findById(makeKey(entityKind(clazz), id).build()), clazz);
   }
 
   @Override
@@ -177,53 +197,58 @@ public class DatastoreDb implements ObjectDb {
     util.saveDeletes(ids.stream().map(id -> makeKey(kind, id)).collect(Collectors.toList()));
   }
 
-  private Key.Builder objectKey(Object object) {
-    return makeKey(entityKind(object.getClass()), getObjectId(object));
+  private Key.Builder objectKey(Model model) {
+    return makeKey(entityKind(model.getClass()), mapper.getModelId(model));
   }
+//
+//  public <T extends Model> void createOrUpdateById(Class<T> clazz, long id,
+//                                                   ObjectTransformer<T> updater,
+//                                                   ObjectFromIdGenerator<T> generator) {
+//    T object = clazz.cast(findById(clazz, id));
+//    object = newOrUpdatedObject(object, id, updater, generator);
+//    save(object);
+//  }
+//
+//  @Override
+//  public <T extends Model> void createOrUpdateByIds(Class<T> clazz, List<Long> ids,
+//                                                    ObjectTransformer<T> updater,
+//                                                    ObjectFromIdGenerator<T> generator) {
+//    createOrUpdateByNamesOrIds(clazz, ids, updater, generator);
+//  }
+//
+//  @Override
+//  public <T extends Model> void createOrUpdateByNames(Class<T> clazz, List<String> names,
+//                                                      ObjectTransformer<T> updater,
+//                                                      ObjectFromIdGenerator<T> generator) {
+//    createOrUpdateByNamesOrIds(clazz, names, updater, generator);
+//  }
+//
+//  public <T extends Model> void createOrUpdateByNamesOrIds(Class<T> clazz, List<?> namesOrIds,
+//                                                           ObjectTransformer<T> updater,
+//                                                           ObjectFromIdGenerator<T> generator) {
+//    List<T> foundObjects = findByNamesOrIds(clazz, namesOrIds);
+//    Map<Object, T> idsToFound = new HashMap<>();
+//    foundObjects.forEach(o -> idsToFound.put(mapper.getModelId(o), o));
+//
+//    List<T> objectsToSave = namesOrIds.stream().map(
+//        id -> newOrUpdatedObject(idsToFound.get(id), id, updater, generator)
+//    ).collect(Collectors.toList());
+//    saveAll(objectsToSave);
+//  }
 
-  public <T extends Model> void createOrUpdateById(Class<T> clazz, long id, ObjectUpdater<T> updater) {
-    T object = clazz.cast(findById(clazz, id));
-    object = newOrUpdatedObject(clazz, object, id, updater);
-    save(object);
-  }
-
-  @Override
-  public <T extends Model> void createOrUpdateByIds(Class<T> clazz, List<Long> ids, ObjectUpdater<T> updater) {
-    createOrUpdateByNamesOrIds(clazz, ids, updater);
-  }
-
-  @Override
-  public <T extends Model> void createOrUpdateByNames(Class<T> clazz, List<String> names,
-                                                      ObjectUpdater<T> updater) {
-    createOrUpdateByNamesOrIds(clazz, names, updater);
-  }
-
-  public <T extends Model> void createOrUpdateByNamesOrIds(Class<T> clazz, List<?> namesOrIds,
-                                                           ObjectUpdater<T> updater) {
-    List<T> foundObjects = findByNamesOrIds(clazz, namesOrIds);
-    Map<Object, T> idsToFound = new HashMap<>();
-    foundObjects.forEach(o -> idsToFound.put(getObjectId(o), o));
-
-    List<T> objectsToSave = namesOrIds.stream().map(
-        id -> newOrUpdatedObject(clazz, idsToFound.get(id), id, updater)
-    ).collect(Collectors.toList());
-    saveAll(objectsToSave);
-  }
-
-  private <T extends Model> T newOrUpdatedObject(Class<T> clazz, T object, Object nameOrId,
-                                                 ObjectUpdater<T> updater) {
+  private <T extends Model> T newOrUpdatedObject(T object, Object nameOrId,
+                                                 ObjectTransformer<T> transformer,
+                                                 ObjectFromIdGenerator<T> generator) {
     if (object == null) {
-      try {
-        object = clazz.newInstance();
-      } catch (InstantiationException|IllegalAccessException e) {
-        throw new ObjectDbException(e);
-      }
-      EntityMapperService.setObjectId(object, nameOrId);
+      object = generator.generateFromId(nameOrId);
     }
-
-    if (updater != null) {
-      updater.update(object);
+    if (transformer != null) {
+      return transformer.transform(object);
     }
     return object;
+  }
+
+  private String entityKind(Class clazz) {
+    return mapper.entityKind(clazz);
   }
 }

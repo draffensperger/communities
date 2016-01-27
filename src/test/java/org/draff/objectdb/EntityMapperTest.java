@@ -51,9 +51,11 @@ abstract class TestModelWithIdMethod implements Model {
 public class EntityMapperTest {
   @Test
   public void testToEntityWithIdField() {
+    CachingEntityMapper mapper = new CachingEntityMapper();
+
     TestModel model = TestModel.builder().id(5).stringProp("hi").longProp(-3).build();
 
-    Entity entity = EntityMapperService.toEntity(model);
+    Entity entity = mapper.toEntity(model);
     Map<String, Value> props = getPropertyMap(entity);
     PathElement pathElement = entity.getKey().getPathElement(0);
     assertEquals(5, pathElement.getId());
@@ -66,9 +68,11 @@ public class EntityMapperTest {
 
   @Test
   public void testToEntityWithIdMethod() {
+    CachingEntityMapper mapper = new CachingEntityMapper();
+
     TestModelWithIdMethod model = TestModelWithIdMethod.create("h", 1);
 
-    Entity entity = EntityMapperService.toEntity(model);
+    Entity entity = mapper.toEntity(model);
     Map<String, Value> props = getPropertyMap(entity);
     PathElement pathElement = entity.getKey().getPathElement(0);
     assertEquals("h:1", pathElement.getName());
@@ -86,7 +90,7 @@ public class EntityMapperTest {
         .addProperty(makeProperty("longProp", makeValue(-6)))
         .build();
 
-    TestModel model = EntityMapperService.fromEntity(entity, TestModel.class);
+    TestModel model = new CachingEntityMapper().fromEntity(entity, TestModel.class);
     assertEquals("str", model.stringProp());
     assertEquals(-6, model.longProp());
     assertEquals(5, model.id());
@@ -100,7 +104,8 @@ public class EntityMapperTest {
         .addProperty(makeProperty("longProp", makeValue(-6)))
         .build();
 
-    TestModelWithIdMethod model = EntityMapperService.fromEntity(entity, TestModelWithIdMethod.class);
+    TestModelWithIdMethod model =
+        new CachingEntityMapper().fromEntity(entity, TestModelWithIdMethod.class);
     assertEquals("str", model.stringProp());
     assertEquals(-6, model.longProp());
     assertEquals("str:-6", model.id());
@@ -108,7 +113,8 @@ public class EntityMapperTest {
 
   @Test
   public void testGivesAndReceivesNull() {
-    assertNull(EntityMapperService.toEntity(null));
-    assertNull(EntityMapperService.fromEntity(null, TestModel.class));
+    CachingEntityMapper mapper = new CachingEntityMapper();
+    assertNull(mapper.toEntity(null));
+    assertNull(mapper.fromEntity(null, TestModel.class));
   }
 }

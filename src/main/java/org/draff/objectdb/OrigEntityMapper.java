@@ -1,26 +1,10 @@
 package org.draff.objectdb;
 
-import com.google.api.services.datastore.DatastoreV1.Entity;
-import com.google.api.services.datastore.DatastoreV1.Key;
-import com.google.common.collect.ImmutableSet;
-
-import java.lang.reflect.*;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.google.api.services.datastore.client.DatastoreHelper.*;
-import static java.util.Arrays.asList;
-import static org.draff.objectdb.ValueMapper.*;
 /**
- * This class provides a simple way to map between a plain-old-Java-object and a Datastore Entity
- * instance. It's not full-featured by any means, but it's a simple way to get the job done without
- * adding a dependency on another library like objectify.
- *
- * Created by dave on 1/2/16.
+ * Created by dave on 1/25/16.
  */
-public class EntityMapperService {
-  private static final String AUTO_VALUE_PREFIX = "AutoValue_";
+public class OrigEntityMapper {
+/*  private static final String AUTO_VALUE_PREFIX = "AutoValue_";
 
   private static final ImmutableSet<Class> DATASTORE_TYPES =
       new ImmutableSet.Builder<Class>().add(String.class, Date.class, Boolean.TYPE, Boolean.class,
@@ -213,5 +197,5 @@ public class EntityMapperService {
     } catch (IllegalAccessException e) {
       throw new ObjectDbException(e);
     }
-  }
+  }*/
 }

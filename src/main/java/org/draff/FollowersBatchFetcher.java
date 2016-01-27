@@ -99,6 +99,7 @@ public class FollowersBatchFetcher {
     if (tracker.shouldRetrieveLevel2Followers) {
       db.createOrUpdateByIds(FollowersTracker.class, Longs.asList(friendOrFollowerIds), level2Tracker -> {
         level2Tracker.shouldRetrieveFollowers = tracker.shouldRetrieveLevel2Followers;
+        return level2Tracker;
       });
 
       addUserDetailRequests(friendOrFollowerIds);

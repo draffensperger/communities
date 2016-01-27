@@ -13,7 +13,7 @@ import static com.google.api.services.datastore.client.DatastoreHelper.*;
 /**
  * Created by dave on 1/3/16.
  */
-public class DatastoreUtil {
+class DatastoreUtil {
   private static final int MAX_ENTITIES_PER_BATCH = 500;
 
   private Datastore datastore;

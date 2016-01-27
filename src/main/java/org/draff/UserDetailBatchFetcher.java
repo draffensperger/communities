@@ -44,14 +44,14 @@ public class UserDetailBatchFetcher {
     System.out.println("Fetching user details for " + names.length + " user names.");
     saveUserDetails(twitterUsers.lookupUsers(names));
     db.createOrUpdateByNames(UserDetailRequestByName.class, Arrays.asList(names),
-        request -> request.detailRetrieved = true);
+        request -> { request.detailRetrieved = true; return request; });
   }
 
   private void fetchUsersByIds(long[] ids) throws TwitterException {
     System.out.println("Fetching user details for " + ids.length + " user ids.");
     saveUserDetails(twitterUsers.lookupUsers(ids));
     db.createOrUpdateByIds(UserDetailRequestById.class, Longs.asList(ids),
-        request -> request.detailRetrieved = true);
+        request -> { request.detailRetrieved = true; return request; });
   }
 
   private String[] neededUserNamesBatch() {
@@ -83,7 +83,8 @@ public class UserDetailBatchFetcher {
         .map(detail -> detail.id).collect(Collectors.toList());
 
     // Since there are already UserDetail records for those request ids, mark those as retrieved.
-    db.createOrUpdateByIds(UserDetailRequestById.class, existingIds, req -> req.detailRetrieved = true);
+    db.createOrUpdateByIds(UserDetailRequestById.class, existingIds,
+        req -> { req.detailRetrieved = true; return req; });
 
     requestIds.removeAll(existingIds);
 

@@ -51,8 +51,6 @@ public class Main {
       new EmbeddedCommunityDetailRequester(db).requestCommunityUserDetails();
     } else if (command.equals("save-community-follower-counts")) {
       new EmbeddedCommunityFollowersCounts(db, args[1]).saveFollowersCounts();
-    } else if (command.equals("ancestors")) {
-      new AncestorExperiment(datastore).saveAncestorFollowers();
     } else {
       TwitterGraphFetcher fetcher = new TwitterGraphFetcher(db, twitterFromEnv());
       fetcher.runFetch();
