@@ -13,13 +13,13 @@ import static com.google.api.services.datastore.client.DatastoreHelper.*;
 import static org.junit.Assert.*;
 
 @AutoValue
-abstract class TestModel implements Model {
+abstract class TestBuilderModel implements Model {
   abstract long id();
   abstract String stringProp();
   abstract long longProp();
 
   static Builder builder() {
-    return new AutoValue_TestModel.Builder();
+    return new AutoValue_TestBuilderModel.Builder();
   }
 
   @AutoValue.Builder
@@ -27,17 +27,17 @@ abstract class TestModel implements Model {
     abstract Builder id(long id);
     abstract Builder stringProp(String s);
     abstract Builder longProp(long l);
-    abstract TestModel build();
+    abstract TestBuilderModel build();
   }
 }
 
 @AutoValue
-abstract class TestModelWithIdMethod implements Model {
+abstract class TestFactoryModel implements Model {
   abstract String stringProp();
   abstract long longProp();
 
-  static TestModelWithIdMethod create(String stringProp, long longProp) {
-    return new AutoValue_TestModelWithIdMethod(stringProp, longProp);
+  static TestFactoryModel create(String stringProp, long longProp) {
+    return new AutoValue_TestFactoryModel(stringProp, longProp);
   }
 
   public String id() {
@@ -45,76 +45,127 @@ abstract class TestModelWithIdMethod implements Model {
   }
 }
 
+@AutoValue
+abstract class TestAmbiguousFactoryModel implements Model {
+  abstract long id();
+  abstract long longProp();
+
+  static TestAmbiguousFactoryModel create(long id, long longProp) {
+    return new AutoValue_TestAmbiguousFactoryModel(id, longProp);
+  }
+}
+
+class TestMutableModel implements Model {
+  long id;
+  String screenName;
+}
+
 /**
  * Created by dave on 1/2/16.
  */
 public class EntityMapperTest {
   @Test
-  public void testToEntityWithIdField() {
+  public void testBuilderModelToEntity() {
     ManagingEntityMapper mapper = new ManagingEntityMapper();
 
-    TestModel model = TestModel.builder().id(5).stringProp("hi").longProp(-3).build();
+    TestBuilderModel model = TestBuilderModel.builder().id(5).stringProp("hi").longProp(-3).build();
 
     Entity entity = mapper.toEntity(model);
-    Map<String, Value> props = getPropertyMap(entity);
     PathElement pathElement = entity.getKey().getPathElement(0);
     assertEquals(5, pathElement.getId());
-    assertEquals("TestModel", pathElement.getKind());
+    assertEquals("TestBuilderModel", pathElement.getKind());
 
+    Map<String, Value> props = getPropertyMap(entity);
     assertEquals(2, props.keySet().size());
     assertEquals(-3, getLong(props.get("longProp")));
     assertEquals("hi", getString(props.get("stringProp")));
   }
 
   @Test
-  public void testToEntityWithIdMethod() {
-    ManagingEntityMapper mapper = new ManagingEntityMapper();
-
-    TestModelWithIdMethod model = TestModelWithIdMethod.create("h", 1);
-
-    Entity entity = mapper.toEntity(model);
-    Map<String, Value> props = getPropertyMap(entity);
-    PathElement pathElement = entity.getKey().getPathElement(0);
-    assertEquals("h:1", pathElement.getName());
-    assertEquals("TestModelWithIdMethod", pathElement.getKind());
-
-    assertEquals(1, getLong(props.get("longProp")));
-    assertEquals("h", getString(props.get("stringProp")));
-  }
-
-  @Test
-  public void testFromEntity() {
+  public void testBuilderModelFromEntity() {
     Entity entity = Entity.newBuilder()
-        .setKey(makeKey("TestModel", 5))
+        .setKey(makeKey("TestBuilderModel", 5))
         .addProperty(makeProperty("stringProp", makeValue("str")))
         .addProperty(makeProperty("longProp", makeValue(-6)))
         .build();
-
-    TestModel model = new ManagingEntityMapper().fromEntity(entity, TestModel.class);
+    TestBuilderModel model = new ManagingEntityMapper().fromEntity(entity, TestBuilderModel.class);
     assertEquals("str", model.stringProp());
     assertEquals(-6, model.longProp());
     assertEquals(5, model.id());
   }
 
   @Test
-  public void testFromEntityWithIdMethod() {
+  public void testFactoryModelToEntity() {
+    ManagingEntityMapper mapper = new ManagingEntityMapper();
+
+    TestFactoryModel model = TestFactoryModel.create("h", 1);
+
+    Entity entity = mapper.toEntity(model);
+    Map<String, Value> props = getPropertyMap(entity);
+    PathElement pathElement = entity.getKey().getPathElement(0);
+    assertEquals("h:1", pathElement.getName());
+    assertEquals("TestFactoryModel", pathElement.getKind());
+
+    assertEquals(1, getLong(props.get("longProp")));
+    assertEquals("h", getString(props.get("stringProp")));
+  }
+
+  @Test
+  public void testFactoryModelFromEntity() {
     Entity entity = Entity.newBuilder()
-        .setKey(makeKey("TestModelWithIdMethod", "str:-6"))
+        .setKey(makeKey("TestFactoryModel", "str:-6"))
         .addProperty(makeProperty("stringProp", makeValue("str")))
         .addProperty(makeProperty("longProp", makeValue(-6)))
         .build();
 
-    TestModelWithIdMethod model =
-        new ManagingEntityMapper().fromEntity(entity, TestModelWithIdMethod.class);
+    TestFactoryModel model =
+        new ManagingEntityMapper().fromEntity(entity, TestFactoryModel.class);
     assertEquals("str", model.stringProp());
     assertEquals(-6, model.longProp());
     assertEquals("str:-6", model.id());
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testAmbiguousFactoryGivesException() {
+    // Because Java reflection does not return methods in declared order, the entity mapper can't
+    // determine which property is which to pass into the "create" factory method, so expect that it
+    // will return an IllegalArgumentException.
+    TestAmbiguousFactoryModel model = TestAmbiguousFactoryModel.create(1L, 2L);
+    new ManagingEntityMapper().toEntity(model);
+  }
+
+  @Test
+  public void testMutableModelToEntity() {
+    TestMutableModel model = new TestMutableModel();
+    model.id = 1L;
+    model.screenName = "user";
+
+    Entity entity = new ManagingEntityMapper().toEntity(model);
+
+    PathElement pathElement = entity.getKey().getPathElement(0);
+    assertEquals(1L, pathElement.getId());
+    assertEquals("TestMutableModel", pathElement.getKind());
+
+    Map<String, Value> props = getPropertyMap(entity);
+    assertEquals(1, props.keySet().size());
+    assertEquals("user", getString(props.get("screenName")));
+  }
+
+  @Test
+  public void testMutableModelFromEntity() {
+    Entity entity = Entity.newBuilder()
+        .setKey(makeKey("TestMutableModel", 5L))
+        .addProperty(makeProperty("screenName", makeValue("user")))
+        .build();
+    TestMutableModel model = new ManagingEntityMapper().fromEntity(entity, TestMutableModel.class);
+    assertEquals("user", model.screenName) ;
+    assertEquals(5L, model.id);
   }
 
   @Test
   public void testGivesAndReceivesNull() {
     ManagingEntityMapper mapper = new ManagingEntityMapper();
     assertNull(mapper.toEntity(null));
-    assertNull(mapper.fromEntity(null, TestModel.class));
+    assertNull(mapper.fromEntity(null, TestBuilderModel.class));
   }
 }
