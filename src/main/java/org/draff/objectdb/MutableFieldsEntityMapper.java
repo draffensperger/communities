@@ -3,11 +3,10 @@ package org.draff.objectdb;
 import com.google.api.services.datastore.DatastoreV1;
 
 /**
- * Created by dave on 1/25/16.
+ * Created by dave on 1/26/16.
  */
-class ReflectionEntityMapper implements EntityMapper {
-  ReflectionEntityMapper(Class clazz) {
-
+public class MutableFieldsEntityMapper implements EntityMapper {
+  public MutableFieldsEntityMapper(Class clazz) {
   }
 
   @Override

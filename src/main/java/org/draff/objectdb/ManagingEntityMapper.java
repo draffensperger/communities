@@ -1,10 +1,9 @@
 package org.draff.objectdb;
 
 import com.google.api.services.datastore.DatastoreV1.Entity;
-
 import java.util.concurrent.ConcurrentHashMap;
-
 import java.util.Map;
+import static org.draff.objectdb.EntityMapperHelper.*;
 
 /**
  * This class provides a simple way to map between a plain-old-Java-object and a Datastore Entity
@@ -13,23 +12,28 @@ import java.util.Map;
  *
  * Created by dave on 1/2/16.
  */
-class CachingEntityMapper implements EntityMapper {
+class ManagingEntityMapper implements EntityMapper {
   private static final ConcurrentHashMap<Class, EntityMapper> mappers = new ConcurrentHashMap<>();
 
-  public CachingEntityMapper() {
-  }
+  public ManagingEntityMapper() {}
 
-  public CachingEntityMapper(Map<Class, EntityMapper> customMappers) {
+  public ManagingEntityMapper(Map<Class, EntityMapper> customMappers) {
     mappers.putAll(customMappers);
   }
 
   @Override
   public Entity toEntity(Model model) {
+    if (model == null) {
+      return null;
+    }
     return mapperFor(model.getClass()).toEntity(model);
   }
 
   @Override
   public <T extends Model> T fromEntity(Entity entity, Class<T> clazz) {
+    if (entity == null) {
+      return null;
+    }
     return mapperFor(clazz).fromEntity(entity, clazz);
   }
 
@@ -46,7 +50,7 @@ class CachingEntityMapper implements EntityMapper {
   private EntityMapper mapperFor(Class clazz) {
     EntityMapper mapper = mappers.get(clazz);
     if (mapper == null) {
-      EntityMapper defaultMapper = defaultForClass(clazz);
+      EntityMapper defaultMapper = defaultMapperForClass(clazz);
       mappers.put(clazz, defaultMapper);
       return defaultMapper;
     } else {
@@ -54,7 +58,13 @@ class CachingEntityMapper implements EntityMapper {
     }
   }
 
-  private EntityMapper defaultForClass(Class clazz) {
-    return new ReflectionEntityMapper(clazz);
+  public static EntityMapper defaultMapperForClass(Class clazz) {
+    if (methodOrNull(clazz, "create") != null) {
+      return new StaticFactoryEntityMapper(clazz, "create");
+    } else if (methodOrNull(clazz, "builder") != null) {
+      return new BuilderEntityMapper(clazz, "builder");
+    } else {
+      return new MutableFieldsEntityMapper(clazz);
+    }
   }
 }

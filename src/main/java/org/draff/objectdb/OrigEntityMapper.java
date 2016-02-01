@@ -31,11 +31,11 @@ public class OrigEntityMapper {
   }
 
   public static String entityKind(Class clazz) {
-    String kind = clazz.getSimpleName();
-    if (kind.startsWith(AUTO_VALUE_PREFIX)) {
-      kind = kind.substring(AUTO_VALUE_PREFIX.length());
+    String kindForClass = clazz.getSimpleName();
+    if (kindForClass.startsWith(AUTO_VALUE_PREFIX)) {
+      kindForClass = kindForClass.substring(AUTO_VALUE_PREFIX.length());
     }
-    return kind;
+    return kindForClass;
   }
 
   private static Object newFromEntity(Entity entity, Class clazz) throws NoSuchMethodException {

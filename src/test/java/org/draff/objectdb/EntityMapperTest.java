@@ -51,7 +51,7 @@ abstract class TestModelWithIdMethod implements Model {
 public class EntityMapperTest {
   @Test
   public void testToEntityWithIdField() {
-    CachingEntityMapper mapper = new CachingEntityMapper();
+    ManagingEntityMapper mapper = new ManagingEntityMapper();
 
     TestModel model = TestModel.builder().id(5).stringProp("hi").longProp(-3).build();
 
@@ -68,7 +68,7 @@ public class EntityMapperTest {
 
   @Test
   public void testToEntityWithIdMethod() {
-    CachingEntityMapper mapper = new CachingEntityMapper();
+    ManagingEntityMapper mapper = new ManagingEntityMapper();
 
     TestModelWithIdMethod model = TestModelWithIdMethod.create("h", 1);
 
@@ -90,7 +90,7 @@ public class EntityMapperTest {
         .addProperty(makeProperty("longProp", makeValue(-6)))
         .build();
 
-    TestModel model = new CachingEntityMapper().fromEntity(entity, TestModel.class);
+    TestModel model = new ManagingEntityMapper().fromEntity(entity, TestModel.class);
     assertEquals("str", model.stringProp());
     assertEquals(-6, model.longProp());
     assertEquals(5, model.id());
@@ -105,7 +105,7 @@ public class EntityMapperTest {
         .build();
 
     TestModelWithIdMethod model =
-        new CachingEntityMapper().fromEntity(entity, TestModelWithIdMethod.class);
+        new ManagingEntityMapper().fromEntity(entity, TestModelWithIdMethod.class);
     assertEquals("str", model.stringProp());
     assertEquals(-6, model.longProp());
     assertEquals("str:-6", model.id());
@@ -113,7 +113,7 @@ public class EntityMapperTest {
 
   @Test
   public void testGivesAndReceivesNull() {
-    CachingEntityMapper mapper = new CachingEntityMapper();
+    ManagingEntityMapper mapper = new ManagingEntityMapper();
     assertNull(mapper.toEntity(null));
     assertNull(mapper.fromEntity(null, TestModel.class));
   }

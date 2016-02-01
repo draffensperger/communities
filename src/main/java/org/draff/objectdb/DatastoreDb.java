@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 import static com.google.api.services.datastore.client.DatastoreHelper.makeFilter;
 import static com.google.api.services.datastore.client.DatastoreHelper.makeKey;
-import static org.draff.objectdb.ValueMapper.*;
+import static org.draff.objectdb.ValueHelper.*;
 
 /**
  * Created by dave on 1/1/16.
@@ -20,12 +20,12 @@ public class DatastoreDb implements ObjectDb {
 
   public DatastoreDb(Datastore datastore, Map<Class, EntityMapper> customEntityMappers) {
     this.util = new DatastoreUtil(datastore);
-    this.mapper = new CachingEntityMapper(customEntityMappers);
+    this.mapper = new ManagingEntityMapper(customEntityMappers);
   }
 
   public DatastoreDb(Datastore datastore) {
     this.util = new DatastoreUtil(datastore);
-    this.mapper = new CachingEntityMapper();
+    this.mapper = new ManagingEntityMapper();
   }
 
   @Override
