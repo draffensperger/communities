@@ -3,6 +3,7 @@ package org.draff.objectdb;
 import com.google.api.services.datastore.DatastoreV1.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Field;
 import java.util.*;
 
 /**
@@ -17,6 +18,16 @@ class EntityMapperHelper {
 
   static Method method(Class clazz, String publicOrDeclaredMethodName) {
     return lookupMethod(clazz, publicOrDeclaredMethodName, true);
+  }
+
+  static Field fieldOrNull(Class clazz, String fieldName) {
+    try {
+      Field field = clazz.getDeclaredField(fieldName);
+      field.setAccessible(true);
+      return field;
+    } catch(NoSuchFieldException e) {
+      return null;
+    }
   }
 
   private static Method lookupMethod(Class clazz, String name, boolean throwOnNotFound) {

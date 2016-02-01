@@ -11,7 +11,9 @@ import static com.google.api.services.datastore.client.DatastoreHelper.getProper
 import static com.google.api.services.datastore.client.DatastoreHelper.makeKey;
 import static com.google.api.services.datastore.client.DatastoreHelper.makeProperty;
 import static org.draff.objectdb.EntityMapperHelper.entityId;
+import static org.draff.objectdb.EntityMapperHelper.fieldOrNull;
 import static org.draff.objectdb.EntityMapperHelper.kindForClass;
+import static org.draff.objectdb.EntityMapperHelper.invoke;
 import static org.draff.objectdb.ValueHelper.fromValue;
 import static org.draff.objectdb.ValueHelper.isDatastoreType;
 import static org.draff.objectdb.ValueHelper.toValue;
@@ -19,11 +21,37 @@ import static org.draff.objectdb.ValueHelper.toValue;
 /**
  * Created by dave on 1/26/16.
  */
-public class MutableFieldsEntityMapper implements EntityMapper {
+class MutableFieldsEntityMapper implements EntityMapper {
   private final String kind;
+  private final List<Field> propertyFields;
+  private final Field idField;
+  private final Method idMethod;
+  private final Class modelClass;
+  private final Constructor constructor;
 
   public MutableFieldsEntityMapper(Class clazz) {
     kind = kindForClass(clazz);
+    propertyFields = classPropertyFields(clazz);
+    modelClass = clazz;
+
+    idField = fieldOrNull(modelClass, "id");
+    if (idField == null) {
+      try {
+        idMethod = modelClass.getDeclaredMethod("id", null);
+        idMethod.setAccessible(true);
+      } catch(NoSuchMethodException e) {
+        throw new ObjectDbException(e);
+      }
+    } else {
+      idMethod = null;
+    }
+
+    try {
+      constructor = clazz.getDeclaredConstructor(new Class[0]);
+      constructor.setAccessible(true);
+    } catch (NoSuchMethodException e) {
+      throw new ObjectDbException(e);
+    }
   }
 
   @Override
@@ -31,7 +59,7 @@ public class MutableFieldsEntityMapper implements EntityMapper {
     Entity.Builder builder = Entity.newBuilder();
     setEntityKey(builder, model);
 
-    propertyFields(model).forEach(field -> setPropertyFromObject(builder, field, model));
+    propertyFields.forEach(field -> setPropertyFromObject(builder, field, model));
     return builder.build();
   }
 
@@ -42,18 +70,10 @@ public class MutableFieldsEntityMapper implements EntityMapper {
 
   @Override
   public Object getModelId(Model model) {
-    try {
-      Field idField = model.getClass().getDeclaredField("id");
-      idField.setAccessible(true);
-      return idField.get(model);
-    } catch(NoSuchFieldException|IllegalAccessException e) {}
-    try {
-      Method idMethod = model.getClass().getDeclaredMethod("id", null);
-      idMethod.setAccessible(true);
-      return idMethod.invoke(model);
-    } catch(NoSuchMethodException|IllegalAccessException|InvocationTargetException e) {
-      throw new ObjectDbException(e);
+    if (idField != null) {
+      return getField(model, idField);
     }
+    return invoke(idMethod, model);
   }
 
   @Override
@@ -62,10 +82,9 @@ public class MutableFieldsEntityMapper implements EntityMapper {
   }
 
   private <T extends Model> T newFromEntity(Entity entity, Class<T> clazz) {
-    Object object = newInstance(clazz);
+    Object object = newInstance();
     setObjectIdFromEntity(object, entity);
-
-    propertyFields(object).forEach(field -> setFieldFromEntity(object, field, entity));
+    propertyFields.forEach(field -> setFieldFromEntity(object, field, entity));
     return clazz.cast(object);
   }
 
@@ -85,13 +104,10 @@ public class MutableFieldsEntityMapper implements EntityMapper {
     }
   }
 
-  private static Object newInstance(Class clazz) {
+  private Object newInstance() {
     try {
-      Constructor constructor = clazz.getDeclaredConstructor(new Class[0]);
-      constructor.setAccessible(true);
       return constructor.newInstance();
-    } catch (IllegalAccessException|InstantiationException|InvocationTargetException|
-        NoSuchMethodException e) {
+    } catch(InstantiationException|IllegalAccessException|InvocationTargetException e) {
       throw new ObjectDbException(e);
     }
   }
@@ -124,10 +140,6 @@ public class MutableFieldsEntityMapper implements EntityMapper {
       // For entities that don't have a parent set, just use their direct id as a key
       builder.setKey(makeKey(kind, getModelId(model)));
     }
-  }
-
-  private static List<Field> propertyFields(Object object) {
-    return classPropertyFields(object.getClass());
   }
 
   private static List<Field> classPropertyFields(Class clazz) {
