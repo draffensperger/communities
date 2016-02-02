@@ -1,4 +1,4 @@
-package org.draff;
+package org.draff.twitfetch;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Longs;

@@ -1,4 +1,4 @@
-package org.draff;
+package org.draff.analysis;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;

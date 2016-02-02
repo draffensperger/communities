@@ -1,4 +1,4 @@
-package org.draff;
+package org.draff.analysis;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -26,8 +26,10 @@ public class EmbeddedCommunityLoader {
     try {
       CSVParser parser = new CSVParser(new FileReader(csvFile), CSVFormat.EXCEL.withHeader());
       List<EmbeddedCommunity> communities = parser.getRecords().stream().map(csvRecord ->
-        new EmbeddedCommunity(csvRecord.get("Embedded Screen Name"),
-            csvRecord.get("Parent Screen Name"))).collect(Collectors.toList());
+          EmbeddedCommunity.builder()
+              .embeddedScreenName(csvRecord.get("Embedded Screen Name"))
+              .parentScreenName(csvRecord.get("Parent Screen Name"))
+              .build()).collect(Collectors.toList());
       db.saveAll(communities);
 
     } catch(IOException e) {

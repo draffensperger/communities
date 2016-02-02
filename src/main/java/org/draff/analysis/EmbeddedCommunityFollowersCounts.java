@@ -1,4 +1,4 @@
-package org.draff;
+package org.draff.analysis;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -29,8 +29,8 @@ public class EmbeddedCommunityFollowersCounts {
     List<EmbeddedCommunity> communities = db.find(EmbeddedCommunity.class, MAX_COMMUNITIES);
     List<String> lowerScreenNames = new ArrayList<>();
     communities.forEach(community -> {
-      lowerScreenNames.add(community.embeddedScreenName.toLowerCase());
-      lowerScreenNames.add(community.parentScreenName.toLowerCase());
+      lowerScreenNames.add(community.embeddedScreenName().toLowerCase());
+      lowerScreenNames.add(community.parentScreenName().toLowerCase());
     });
 
     Map<String, UserDetail> userDetails = userDetailsMap(lowerScreenNames);
@@ -41,12 +41,12 @@ public class EmbeddedCommunityFollowersCounts {
 
       for (EmbeddedCommunity community : communities) {
         printer.printRecord(
-            community.embeddedScreenName,
-            userDetails.get(community.embeddedScreenName.toLowerCase()).followersCount
+            community.embeddedScreenName(),
+            userDetails.get(community.embeddedScreenName().toLowerCase()).followersCount
         );
         printer.printRecord(
-            community.parentScreenName,
-            userDetails.get(community.parentScreenName.toLowerCase()).followersCount
+            community.parentScreenName(),
+            userDetails.get(community.parentScreenName().toLowerCase()).followersCount
         );
       }
       printer.close();

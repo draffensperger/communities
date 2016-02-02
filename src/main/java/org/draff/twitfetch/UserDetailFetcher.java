@@ -1,4 +1,4 @@
-package org.draff;
+package org.draff.twitfetch;
 
 /**
  * Created by dave on 1/13/16.

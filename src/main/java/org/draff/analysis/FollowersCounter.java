@@ -1,4 +1,4 @@
-package org.draff;
+package org.draff.analysis;
 
 import org.draff.model.UserDetail;
 import org.draff.objectdb.ObjectDb;

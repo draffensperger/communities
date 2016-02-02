@@ -1,4 +1,4 @@
-package org.draff;
+package org.draff.twitfetch;
 
 import org.draff.objectdb.ObjectDb;
 

@@ -1,4 +1,4 @@
-package org.draff;
+package org.draff.analysis;
 
 import org.draff.model.EmbeddedCommunity;
 import org.draff.model.UserDetailRequestByName;
@@ -20,8 +20,8 @@ public class EmbeddedCommunityDetailRequester {
     List<EmbeddedCommunity> communities = db.find(EmbeddedCommunity.class, MAX_COMMUNITIES);
     List<UserDetailRequestByName> requests = new ArrayList<>();
     communities.forEach(community -> {
-      requests.add(new UserDetailRequestByName(community.embeddedScreenName));
-      requests.add(new UserDetailRequestByName(community.parentScreenName));
+      requests.add(new UserDetailRequestByName(community.embeddedScreenName()));
+      requests.add(new UserDetailRequestByName(community.parentScreenName()));
     });
     db.saveAll(requests);
   }

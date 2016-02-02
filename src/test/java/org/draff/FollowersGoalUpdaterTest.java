@@ -5,6 +5,7 @@ import org.draff.model.FollowersTracker;
 import org.draff.model.UserDetail;
 import org.draff.objectdb.DatastoreDb;
 import org.draff.support.TestDatastore;
+import org.draff.twitfetch.FollowersGoalUpdater;
 import org.junit.Before;
 import org.junit.Test;
 

@@ -4,6 +4,7 @@ import org.draff.mapper.DatastoreDbFactory;
 import org.draff.model.*;
 import org.draff.objectdb.DatastoreDb;
 import org.draff.support.TestDatastore;
+import org.draff.twitfetch.FollowersBatchFetcher;
 import org.junit.Before;
 import org.junit.Test;
 
