@@ -1,5 +1,8 @@
 package org.draff;
 
+import org.draff.model.FollowersGoal;
+import org.draff.model.FollowersTracker;
+import org.draff.model.UserDetail;
 import org.draff.objectdb.DatastoreDb;
 import org.draff.support.TestDatastore;
 import org.junit.Before;

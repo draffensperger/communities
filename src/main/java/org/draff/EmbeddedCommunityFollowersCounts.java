@@ -2,6 +2,8 @@ package org.draff;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.draff.model.EmbeddedCommunity;
+import org.draff.model.UserDetail;
 import org.draff.objectdb.ObjectDb;
 
 import java.io.FileWriter;

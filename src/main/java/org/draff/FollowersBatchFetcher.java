@@ -3,6 +3,7 @@ package org.draff;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Longs;
 
+import org.draff.model.*;
 import org.draff.objectdb.ObjectDb;
 
 import twitter4j.IDs;

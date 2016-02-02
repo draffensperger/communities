@@ -3,6 +3,9 @@ package org.draff;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 
+import org.draff.model.Follower;
+import org.draff.model.FollowersTracker;
+import org.draff.model.UserDetail;
 import org.draff.objectdb.ObjectDb;
 
 import java.util.HashSet;

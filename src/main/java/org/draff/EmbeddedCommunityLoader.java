@@ -2,6 +2,7 @@ package org.draff;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
+import org.draff.model.EmbeddedCommunity;
 import org.draff.objectdb.ObjectDb;
 
 import java.io.FileReader;

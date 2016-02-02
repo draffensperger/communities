@@ -1,5 +1,7 @@
 package org.draff;
 
+import org.draff.mapper.DatastoreDbFactory;
+import org.draff.model.*;
 import org.draff.objectdb.DatastoreDb;
 import org.draff.support.TestDatastore;
 import org.junit.Before;

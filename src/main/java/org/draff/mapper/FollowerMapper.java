@@ -1,7 +1,9 @@
-package org.draff;
+package org.draff.mapper;
 
 import com.google.api.services.datastore.DatastoreV1.*;
 
+import org.draff.model.Follower;
+import org.draff.model.FollowersTracker;
 import org.draff.objectdb.EntityMapper;
 import org.draff.objectdb.Model;
 

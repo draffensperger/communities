@@ -1,8 +1,9 @@
-package org.draff;
+package org.draff.mapper;
 
 import com.google.api.services.datastore.client.Datastore;
 import com.google.common.collect.ImmutableMap;
 
+import org.draff.model.Follower;
 import org.draff.objectdb.DatastoreDb;
 import org.draff.objectdb.EntityMapper;
 

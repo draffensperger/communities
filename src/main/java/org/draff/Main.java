@@ -5,6 +5,7 @@ import com.google.api.services.datastore.client.DatastoreFactory;
 import com.google.api.services.datastore.client.DatastoreHelper;
 
 import org.apache.log4j.PropertyConfigurator;
+import org.draff.model.FollowersGoal;
 import org.draff.objectdb.DatastoreDb;
 import org.draff.objectdb.ObjectDb;
 

@@ -1,4 +1,4 @@
-package org.draff;
+package org.draff.model;
 
 import org.draff.objectdb.Model;
 
@@ -6,13 +6,13 @@ import org.draff.objectdb.Model;
  * Created by dave on 1/1/16.
  */
 public class Follower implements Model {
-  FollowersTracker parent;
-  long id;
+  public FollowersTracker parent;
+  public long id;
 
   // ObjectDb expects a default contructor.
-  Follower() {}
+  public Follower() {}
 
-  Follower(FollowersTracker parent, long id) {
+  public Follower(FollowersTracker parent, long id) {
     this.parent = parent;
     this.id = id;
   }

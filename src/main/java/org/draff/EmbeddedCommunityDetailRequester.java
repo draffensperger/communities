@@ -1,5 +1,7 @@
 package org.draff;
 
+import org.draff.model.EmbeddedCommunity;
+import org.draff.model.UserDetailRequestByName;
 import org.draff.objectdb.ObjectDb;
 import java.util.*;
 

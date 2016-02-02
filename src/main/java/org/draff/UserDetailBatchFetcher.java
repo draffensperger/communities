@@ -3,6 +3,9 @@ package org.draff;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Longs;
 
+import org.draff.model.UserDetail;
+import org.draff.model.UserDetailRequestById;
+import org.draff.model.UserDetailRequestByName;
 import org.draff.objectdb.ObjectDb;
 
 import twitter4j.TwitterException;

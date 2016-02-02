@@ -1,4 +1,4 @@
-package org.draff;
+package org.draff.model;
 
 import org.draff.objectdb.Model;
 
@@ -8,19 +8,19 @@ import java.util.Date;
  * Created by dave on 1/7/16.
  */
 public class UserDetail implements Model {
-  long id;
-  long retrievedAt;
-  String screenName;
-  String screenNameLower;
+  public long id;
+  public long retrievedAt;
+  public String screenName;
+  public String screenNameLower;
   String location;
   String description;
   String url;
   long statusesCount;
   long listedCount;
-  long followersCount;
+  public long followersCount;
   long favouritesCount;
   long utcOffset;
-  long friendsCount;
+  public long friendsCount;
   Date createdAt;
   String timeZone;
   String lang;
@@ -28,7 +28,7 @@ public class UserDetail implements Model {
   boolean isVerified;
   boolean isTranslator;
   boolean isContributorsEnabled;
-  boolean isProtected;
+  public boolean isProtected;
   String profileImageURL;
   String profileBackgroundColor;
   String profileTextColor;
@@ -43,8 +43,8 @@ public class UserDetail implements Model {
   String profileBannerURL;
   boolean isProfileBackgroundTiled;
 
-  UserDetail() {}
-  UserDetail(twitter4j.User user) {
+  public UserDetail() {}
+  public UserDetail(twitter4j.User user) {
     setFieldsFromTwitterUser(user);
   }
 
