@@ -1,9 +1,14 @@
 package org.draff.objectdb;
 
 import com.google.api.services.datastore.DatastoreV1.Entity;
-import java.util.concurrent.ConcurrentHashMap;
+
+import java.lang.reflect.Field;
 import java.util.Map;
-import static org.draff.objectdb.EntityMapperHelper.*;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static org.draff.objectdb.EntityMapperHelper.fieldOrNull;
+import static org.draff.objectdb.EntityMapperHelper.isAutoValueImpl;
+import static org.draff.objectdb.EntityMapperHelper.methodOrNull;
 
 /**
  * This class provides a simple way to map between a plain-old-Java-object and a Datastore Entity
@@ -70,7 +75,14 @@ class ManagingEntityMapper implements EntityMapper {
     } else if (methodOrNull(clazz, "builder") != null) {
       return new BuilderEntityMapper(clazz, "builder");
     } else {
-      return new MutableFieldsEntityMapper(clazz);
+      EntityMapper parentMapper;
+      Field parentField = fieldOrNull(clazz, "parent");
+      if (parentField == null) {
+        parentMapper = null;
+      } else {
+        parentMapper = defaultMapperForClass(parentField.getType());
+      }
+      return new MutableFieldsEntityMapper(clazz, parentMapper);
     }
   }
 }

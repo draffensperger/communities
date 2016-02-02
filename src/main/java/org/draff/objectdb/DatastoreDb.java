@@ -30,9 +30,6 @@ public class DatastoreDb implements ObjectDb {
 
   @Override
   public void save(Model object) {
-    if (object instanceof List) {
-      throw new ObjectDbException("Tried to call save with a List, did you mean saveAll?");
-    }
     util.saveUpsert(mapper.toEntity(object));
   }
 
@@ -266,7 +263,7 @@ public class DatastoreDb implements ObjectDb {
     if (updater != null) {
       return updater.transform(object);
     } else {
-      return null;
+      return object;
     }
   }
 

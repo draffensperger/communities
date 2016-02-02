@@ -25,11 +25,13 @@ class MutableFieldsEntityMapper implements EntityMapper {
   private final String kind;
   private final List<Field> propertyFields;
   private final Field idField;
+  private final Field parentField;
   private final Method idMethod;
   private final Class modelClass;
   private final Constructor constructor;
+  private final EntityMapper parentMapper;
 
-  public MutableFieldsEntityMapper(Class clazz) {
+  public MutableFieldsEntityMapper(Class clazz, EntityMapper parentMapper) {
     kind = kindForClass(clazz);
     propertyFields = classPropertyFields(clazz);
     modelClass = clazz;
@@ -52,6 +54,9 @@ class MutableFieldsEntityMapper implements EntityMapper {
     } catch (NoSuchMethodException e) {
       throw new ObjectDbException(e);
     }
+
+    parentField = fieldOrNull(modelClass, "parent");
+    this.parentMapper = parentMapper;
   }
 
   @Override
@@ -127,18 +132,17 @@ class MutableFieldsEntityMapper implements EntityMapper {
   }
 
   private void setEntityKey(Entity.Builder builder, Model model) {
-    try {
-      Field parentField = model.getClass().getDeclaredField("parent");
-      parentField.setAccessible(true);
+    if (parentField == null) {
+      builder.setKey(makeKey(kind, getModelId(model)));
+    } else {
       try {
         Model parent = (Model) parentField.get(model);
-        builder.setKey(makeKey(kind, getModelId(parent), kind, getModelId(model)));
+        builder.setKey(makeKey(
+            parentMapper.entityKind(parentField.getType()), parentMapper.getModelId(parent),
+            kind, getModelId(model)));
       } catch(ClassCastException|IllegalAccessException e) {
         throw new ObjectDbException(e);
       }
-    } catch(NoSuchFieldException e) {
-      // For entities that don't have a parent set, just use their direct id as a key
-      builder.setKey(makeKey(kind, getModelId(model)));
     }
   }
 
