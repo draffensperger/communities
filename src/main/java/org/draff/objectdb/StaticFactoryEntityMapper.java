@@ -33,11 +33,7 @@ public class StaticFactoryEntityMapper implements EntityMapper {
 
     // For AutoValue types, the abstract method names will be the property list.
     // Allow this to work for either the abstract @AutoValue class or the implementation class.
-    if (clazz.getSimpleName().startsWith("AutoValue_")) {
-      propertyNames = abstractPropertyMethods(clazz.getSuperclass());
-    } else {
-      propertyNames = abstractPropertyMethods(clazz);
-    }
+    propertyNames = abstractPropertyMethods(clazz);
 
     propertyMethods = propertyNames.stream()
         .filter(name -> !name.equals("id"))
@@ -78,10 +74,6 @@ public class StaticFactoryEntityMapper implements EntityMapper {
 
   @Override
   public Entity toEntity(Model model) {
-    if (model.getClass() != modelClass) {
-      throw new IllegalArgumentException("Expected model of class " + modelClass + " got " + model);
-    }
-
     Entity.Builder builder = Entity.newBuilder();
     builder.setKey(makeKey(entityKind(model.getClass()), getModelId(model)));
     propertyMethods.forEach(method ->
@@ -91,10 +83,6 @@ public class StaticFactoryEntityMapper implements EntityMapper {
 
   @Override
   public <T extends Model> T fromEntity(Entity entity, Class<T> clazz) {
-    if (clazz != modelClass) {
-      throw new IllegalArgumentException("Class " + modelClass + " got class " + clazz);
-    }
-
     return clazz.cast(invoke(factoryMethod, null, factoryArgs(entity)));
   }
 

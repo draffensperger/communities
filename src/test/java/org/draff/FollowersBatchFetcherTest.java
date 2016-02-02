@@ -24,7 +24,7 @@ public class FollowersBatchFetcherTest {
 
   @Before
   public void setup() {
-    db = new DatastoreDb(TestDatastore.get());
+    db = DatastoreDbFactory.create(TestDatastore.get());
     TestDatastore.clean();
   }
 

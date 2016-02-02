@@ -66,7 +66,7 @@ class EntityMapperHelper {
 
   static String kindForClass(Class clazz) {
     String kind = clazz.getSimpleName();
-    if (kind.startsWith(AUTO_VALUE_PREFIX)) {
+    if (isAutoValueImpl(clazz)) {
       kind = kind.substring(AUTO_VALUE_PREFIX.length());
     }
     return kind;
@@ -80,6 +80,10 @@ class EntityMapperHelper {
     } else {
       return pathElement.getName();
     }
+  }
+
+  static boolean isAutoValueImpl(Class clazz) {
+    return clazz.getSimpleName().startsWith(AUTO_VALUE_PREFIX);
   }
 
   private static Method makePublic(Method method) {

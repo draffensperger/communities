@@ -53,9 +53,10 @@ public class DatastoreDbTest {
     }
   }
 
-  class Friend implements Model {
+  public static class Friend implements Model {
     User parent;
     long id;
+    public Friend() {}
   }
 
   @Before
@@ -164,7 +165,7 @@ public class DatastoreDbTest {
 
   @Test
   public void testSaveAndFindChildren() {
-    User user = User.builder().id(1L).build();
+    User user = User.builder().id(1L).depthGoal(2L).build();
     db.save(user);
     waitForEventualSave(User.class);
 

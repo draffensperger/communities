@@ -48,10 +48,6 @@ public class BuilderEntityMapper implements EntityMapper {
 
   @Override
   public Entity toEntity(Model model) {
-    if (model.getClass() != modelClass) {
-      throw new IllegalArgumentException("Expected model of class " + modelClass + " got " + model);
-    }
-
     Entity.Builder builder = Entity.newBuilder();
     builder.setKey(makeKey(entityKind(model.getClass()), getModelId(model)));
     propertyMethods.forEach(method ->
@@ -61,10 +57,6 @@ public class BuilderEntityMapper implements EntityMapper {
 
   @Override
   public <T extends Model> T fromEntity(Entity entity, Class<T> clazz) {
-    if (clazz != modelClass) {
-      throw new IllegalArgumentException("Class " + modelClass + " got class " + clazz);
-    }
-
     Map<String, Value> entityProperties = getPropertyMap(entity);
     Object builder = invoke(builderMethod, null);
     builderPropertyMethods.forEach(m ->
