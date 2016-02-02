@@ -44,10 +44,10 @@ public class FollowersComparer {
     List<Follower> followersBatch = db.findChildren(tracker, Follower.class, BATCH_SIZE, nextMinId);
     while(!followersBatch.isEmpty()) {
       for (Follower follower : followersBatch) {
-        if (follower.id > nextMinId) {
-          nextMinId = follower.id;
+        if (follower.id() > nextMinId) {
+          nextMinId = follower.id();
         }
-        followerIds.add(follower.id);
+        followerIds.add(follower.id());
       }
       followersBatch = db.findChildren(tracker, Follower.class, BATCH_SIZE, nextMinId + 1);
     }

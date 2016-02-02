@@ -19,23 +19,21 @@ public enum FollowerMapper implements EntityMapper {
   public Entity toEntity(Model model) {
     Follower follower = (Follower) model;
     Entity.Builder builder = Entity.newBuilder();
-    builder.setKey(makeKey("FollowersTracker", follower.parent.id, "Follower", follower.id));
+    builder.setKey(makeKey("FollowersTracker", follower.parent().id, "Follower", follower.id()));
     return builder.build();
   }
 
   @Override
   public <T extends Model> T fromEntity(Entity entity, Class<T> clazz) {
-    Follower follower = new Follower();
     Key key = entity.getKey();
-    follower.parent = new FollowersTracker();
-    follower.parent.id = key.getPathElement(0).getId();
-    follower.id = key.getPathElement(1).getId();
-    return clazz.cast(follower);
+    FollowersTracker parent = new FollowersTracker();
+    parent.id = key.getPathElement(0).getId();
+    return clazz.cast(Follower.create(parent, key.getPathElement(1).getId()));
   }
 
   @Override
   public Object getModelId(Model model) {
-    return ((Follower)model).id;
+    return ((Follower)model).id();
   }
 
   @Override

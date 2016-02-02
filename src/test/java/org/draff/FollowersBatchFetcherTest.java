@@ -49,16 +49,16 @@ public class FollowersBatchFetcherTest {
     assertEquals(1001L, updatedTracker.followersCursor);
 
     List<Follower> followers = db.findChildren(tracker, Follower.class, 3, Long.MIN_VALUE);
-    followers.sort((f1, f2) -> Long.compare(f1.id, f2.id));
+    followers.sort((f1, f2) -> Long.compare(f1.id(), f2.id()));
     assertEquals(2, followers.size());
 
     Follower follower0 = followers.get(0);
-    assertEquals(1L, follower0.parent.id);
-    assertEquals(2L, follower0.id);
+    assertEquals(1L, follower0.parent().id);
+    assertEquals(2L, follower0.id());
 
     Follower follower1 = followers.get(1);
-    assertEquals(1L, follower1.parent.id);
-    assertEquals(3L, follower1.id);
+    assertEquals(1L, follower1.parent().id);
+    assertEquals(3L, follower1.id());
   }
 
   @Test

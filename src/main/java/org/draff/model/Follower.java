@@ -1,19 +1,18 @@
 package org.draff.model;
 
+import com.google.auto.value.AutoValue;
+
 import org.draff.objectdb.Model;
 
 /**
  * Created by dave on 1/1/16.
  */
-public class Follower implements Model {
-  public FollowersTracker parent;
-  public long id;
+@AutoValue
+public abstract class Follower implements Model {
+  public abstract FollowersTracker parent();
+  public abstract long id();
 
-  // ObjectDb expects a default contructor.
-  public Follower() {}
-
-  public Follower(FollowersTracker parent, long id) {
-    this.parent = parent;
-    this.id = id;
+  public static Follower create(FollowersTracker parent, long id) {
+    return new AutoValue_Follower(parent, id);
   }
 }

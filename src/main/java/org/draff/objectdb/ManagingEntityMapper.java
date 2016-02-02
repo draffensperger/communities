@@ -63,11 +63,12 @@ class ManagingEntityMapper implements EntityMapper {
     }
   }
 
-  public static EntityMapper defaultMapperForClass(Class clazz) {
+  public EntityMapper defaultMapperForClass(Class clazz) {
     if (isAutoValueImpl(clazz)) {
       // The constructors below are designed to work on the abstract @AutoValue class, not the
-      // auto-generated implementation class.
-      clazz = clazz.getSuperclass();
+      // auto-generated implementation class. This will also make it work better with custom entity
+      // mapper classes.
+      return mapperFor(clazz.getSuperclass());
     }
 
     if (methodOrNull(clazz, "create") != null) {

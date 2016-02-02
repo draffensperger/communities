@@ -82,7 +82,7 @@ public class FollowersBatchFetcher {
   private void saveFollowers(FollowersTracker tracker, long[] followerIds) {
     List<Follower> followers = new ArrayList<>(followerIds.length);
     for (long followerId : followerIds) {
-      followers.add(new Follower(tracker, followerId));
+      followers.add(Follower.create(tracker, followerId));
     }
     db.saveAll(followers);
   }
