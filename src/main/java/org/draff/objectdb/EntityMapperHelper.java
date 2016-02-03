@@ -48,12 +48,12 @@ class EntityMapperHelper {
   }
 
   static List<Method> methods(Class clazz) {
-    List<Method> methods = new ArrayList<>();
+    Set<Method> methods = new HashSet<>();
     methods.addAll(Arrays.asList(clazz.getMethods()));
     List<Method> declaredMethods = Arrays.asList(clazz.getDeclaredMethods());
     declaredMethods.forEach(m -> m.setAccessible(true));
     methods.addAll(declaredMethods);
-    return methods;
+    return new ArrayList<Method>(methods);
   }
 
   static Object invoke(Method method, Object thisObj, Object ... args) {

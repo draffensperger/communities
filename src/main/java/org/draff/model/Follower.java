@@ -12,6 +12,8 @@ public abstract class Follower implements Model {
   public abstract FollowersTracker parent();
   public abstract long id();
 
+  Follower() {}
+
   public static Follower create(FollowersTracker parent, long id) {
     return new AutoValue_Follower(parent, id);
   }

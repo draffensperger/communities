@@ -1,6 +1,6 @@
 package org.draff;
 
-import org.draff.mapper.DatastoreDbFactory;
+import org.draff.mapper.DbWithMappers;
 import org.draff.model.*;
 import org.draff.objectdb.DatastoreDb;
 import org.draff.support.TestDatastore;
@@ -28,15 +28,16 @@ public class UserDetailBatchFetcherTest {
 
   @Before
   public void setup() {
-    db = DatastoreDbFactory.create(TestDatastore.get());
+    db = DbWithMappers.create(TestDatastore.get());
     TestDatastore.clean();
   }
 
   @Test
   public void testRetrieveUserDetailsById() throws TwitterException {
     db.saveAll(Arrays.asList(
-        new UserDetailRequestById(10), new UserDetailRequestById(20),
-        new UserDetailRequestById(30)
+        UserDetailRequestById.builder().id(10L).build(),
+        UserDetailRequestById.builder().id(20L).build(),
+        UserDetailRequestById.builder().id(30L).build()
     ));
     waitForEventualSave(UserDetailRequestById.class);
 
@@ -50,7 +51,7 @@ public class UserDetailBatchFetcherTest {
 
     List<UserDetailRequestById> requests = db.find(UserDetailRequestById.class, 4);
     assertEquals(3, requests.size());
-    requests.forEach(request -> assertTrue(request.detailRetrieved));
+    requests.forEach(request -> assertTrue(request.detailRetrieved()));
 
     UserDetail detail1 = db.findById(UserDetail.class, 10);
     assertNotNull(detail1);

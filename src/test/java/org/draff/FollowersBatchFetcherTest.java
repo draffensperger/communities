@@ -1,6 +1,6 @@
 package org.draff;
 
-import org.draff.mapper.DatastoreDbFactory;
+import org.draff.mapper.DbWithMappers;
 import org.draff.model.*;
 import org.draff.objectdb.DatastoreDb;
 import org.draff.support.TestDatastore;
@@ -27,7 +27,7 @@ public class FollowersBatchFetcherTest {
 
   @Before
   public void setup() {
-    db = DatastoreDbFactory.create(TestDatastore.get());
+    db = DbWithMappers.create(TestDatastore.get());
     TestDatastore.clean();
   }
 
@@ -74,10 +74,8 @@ public class FollowersBatchFetcherTest {
     db.saveAll(Arrays.asList(existingTracker1, existingTracker2));
     waitForEventualSave(FollowersTracker.class);
 
-    UserDetailRequestById existingDetailRequest = new UserDetailRequestById();
-    existingDetailRequest.id = 2L;
-    existingDetailRequest.detailRetrieved = true;
-    db.save(existingDetailRequest);
+    // Add existing request that is marked as retrieved
+    db.save(UserDetailRequestById.builder().id(2L).detailRetrieved(true).build());
 
     new FollowersBatchFetcher(db, mockFriendsFollowers()).fetchFollowersBatch();
     waitForEventualSave(Follower.class);
@@ -87,17 +85,17 @@ public class FollowersBatchFetcherTest {
 
     List<UserDetailRequestById> detailRequests = db.find(UserDetailRequestById.class, 3);
     assertEquals(2, detailRequests.size());
-    detailRequests.sort((d1, d2) -> Long.compare(d1.id, d2.id));
+    detailRequests.sort((d1, d2) -> Long.compare(d1.id(), d2.id()));
 
     UserDetailRequestById detailRequest1 = detailRequests.get(0);
-    assertEquals(2L, detailRequest1.id);
+    assertEquals(2L, detailRequest1.id());
     // check that it kept the existing retrieved detail request for user 2 marked as retrieved
-    assertTrue(detailRequest1.detailRetrieved);
+    assertTrue(detailRequest1.detailRetrieved());
 
     UserDetailRequestById detailRequest2 = detailRequests.get(1);
-    assertEquals(3L, detailRequest2.id);
+    assertEquals(3L, detailRequest2.id());
     // check that the new detail request for user 3 is marked as not retrieved
-    assertFalse(detailRequest2.detailRetrieved);
+    assertFalse(detailRequest2.detailRetrieved());
 
     List<FollowersTracker> trackers = db.find(FollowersTracker.class, 4);
     assertEquals(3, trackers.size());

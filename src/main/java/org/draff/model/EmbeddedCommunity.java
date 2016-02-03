@@ -13,6 +13,8 @@ public abstract class EmbeddedCommunity implements Model {
   public abstract String embeddedScreenName();
   public abstract String parentScreenName();
 
+  EmbeddedCommunity() {}
+
   public static Builder builder() {
     return new AutoValue_EmbeddedCommunity.Builder();
   }

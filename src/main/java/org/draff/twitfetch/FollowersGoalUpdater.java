@@ -77,7 +77,11 @@ public class FollowersGoalUpdater {
     // Mark these users as retrieved in the UserDetailRequestById table so they won't be re-retrieved
     // later on.
     List<Long> ids = users.stream().map(u -> u.getId()).collect(Collectors.toList());
-    db.createOrUpdateByIds(UserDetailRequestById.class, ids,
-        request -> { request.detailRetrieved = true; return request; });
+
+    db.createOrTransform(UserDetailRequestById.class)
+        .namesOrIds(ids)
+        .creator(id -> UserDetailRequestById.builder().id((Long)id).detailRetrieved(true).build())
+        .transformer(request -> ((UserDetailRequestById)request).withDetailRetrieved(true))
+        .now();
   }
 }

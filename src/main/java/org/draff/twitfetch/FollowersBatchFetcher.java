@@ -108,8 +108,11 @@ public class FollowersBatchFetcher {
   }
 
   private void addUserDetailRequests(long[] userIds) {
-    // Leave existing user detail requests as is, but create new ones with the detault value of
+    // Leave existing user detail requests as is, but create new ones with the value of
     // false for the detailRetrieved field.
-    db.createOrUpdateByIds(UserDetailRequestById.class, Longs.asList(userIds), null);
+    db.createOrTransform(UserDetailRequestById.class).namesOrIds(Longs.asList(userIds))
+        .transformer(existing -> existing)
+        .creator(id -> UserDetailRequestById.builder().id((Long)id).detailRetrieved(false).build())
+        .now();
   }
 }

@@ -12,13 +12,13 @@ import java.util.Map;
 /**
  * Created by dave on 2/1/16.
  */
-public class DatastoreDbFactory {
+public class DbWithMappers {
   private static final Map<Class, EntityMapper> CUSTOM_ENTITY_MAPPERS =
       new ImmutableMap.Builder<Class, EntityMapper>()
           .put(Follower.class, FollowerMapper.INSTANCE)
           .build();
 
-  private DatastoreDbFactory() {}
+  private DbWithMappers() {}
 
   public static DatastoreDb create(Datastore datastore) {
     return new DatastoreDb(datastore, CUSTOM_ENTITY_MAPPERS);

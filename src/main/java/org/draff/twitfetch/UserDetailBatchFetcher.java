@@ -54,7 +54,7 @@ public class UserDetailBatchFetcher {
     System.out.println("Fetching user details for " + ids.length + " user ids.");
     saveUserDetails(twitterUsers.lookupUsers(ids));
     db.createOrUpdateByIds(UserDetailRequestById.class, Longs.asList(ids),
-        request -> { request.detailRetrieved = true; return request; });
+        request -> request.withDetailRetrieved(true));
   }
 
   private String[] neededUserNamesBatch() {
@@ -79,15 +79,18 @@ public class UserDetailBatchFetcher {
   private Collection<Long> requestIdsBatch(long minId) {
     List<Long> requestIdsList =
         db.findOrderedById(UserDetailRequestById.class, BATCH_SIZE, minId, DETAIL_NOT_RETRIEVED)
-            .stream().map(request -> request.id).collect(Collectors.toList());
+            .stream().map(request -> request.id()).collect(Collectors.toList());
     HashSet<Long> requestIds = new HashSet<>(requestIdsList);
 
     List<Long> existingIds = db.findByIds(UserDetail.class, requestIds).stream()
         .map(detail -> detail.id).collect(Collectors.toList());
 
     // Since there are already UserDetail records for those request ids, mark those as retrieved.
-    db.createOrUpdateByIds(UserDetailRequestById.class, existingIds,
-        req -> { req.detailRetrieved = true; return req; });
+    db.createOrTransform(UserDetailRequestById.class)
+        .namesOrIds(existingIds)
+        .transformer(request -> ((UserDetailRequestById)request).withDetailRetrieved(true))
+        .creator(id -> UserDetailRequestById.builder().id((Long)id).detailRetrieved(true).build())
+        .now();
 
     requestIds.removeAll(existingIds);
 

@@ -28,6 +28,11 @@ public class DatastoreDb implements ObjectDb {
     this.mapper = new ManagingEntityMapper();
   }
 
+  // Package-private accessor to entity mapper for use by helper classes
+  EntityMapper mapper() {
+    return mapper;
+  }
+
   @Override
   public void save(Model object) {
     util.saveUpsert(mapper.toEntity(object));
@@ -128,7 +133,8 @@ public class DatastoreDb implements ObjectDb {
     return findByNamesOrIds(clazz, names);
   }
 
-  private <T extends Model> List<T> findByNamesOrIds(Class<T> clazz, Collection<?> namesOrIds) {
+  @Override
+  public <T extends Model> List<T> findByNamesOrIds(Class<T> clazz, Collection<?> namesOrIds) {
     List<Key> keys = namesOrIds.stream()
         .map(nameOrId -> makeKey(entityKind(clazz), nameOrId).build()).collect(Collectors.toList());
     return fromEntities(clazz, util.findByIds(keys));
@@ -186,7 +192,7 @@ public class DatastoreDb implements ObjectDb {
 //
 //  public <T extends Model> void createOrUpdateById(Class<T> clazz, long id,
 //                                                   ObjectTransformer<T> updater,
-//                                                   ObjectFromIdGenerator<T> generator) {
+//                                                   ObjectFromIdCreator<T> generator) {
 //    T object = clazz.cast(findById(clazz, id));
 //    object = newOrUpdatedObject(object, id, updater, generator);
 //    save(object);
@@ -195,20 +201,20 @@ public class DatastoreDb implements ObjectDb {
 //  @Override
 //  public <T extends Model> void createOrUpdateByIds(Class<T> clazz, List<Long> ids,
 //                                                    ObjectTransformer<T> updater,
-//                                                    ObjectFromIdGenerator<T> generator) {
+//                                                    ObjectFromIdCreator<T> generator) {
 //    createOrUpdateByNamesOrIds(clazz, ids, updater, generator);
 //  }
 //
 //  @Override
 //  public <T extends Model> void createOrUpdateByNames(Class<T> clazz, List<String> names,
 //                                                      ObjectTransformer<T> updater,
-//                                                      ObjectFromIdGenerator<T> generator) {
+//                                                      ObjectFromIdCreator<T> generator) {
 //    createOrUpdateByNamesOrIds(clazz, names, updater, generator);
 //  }
 //
 //  public <T extends Model> void createOrUpdateByNamesOrIds(Class<T> clazz, List<?> namesOrIds,
 //                                                           ObjectTransformer<T> updater,
-//                                                           ObjectFromIdGenerator<T> generator) {
+//                                                           ObjectFromIdCreator<T> generator) {
 //    List<T> foundObjects = findByNamesOrIds(clazz, namesOrIds);
 //    Map<Object, T> idsToFound = new HashMap<>();
 //    foundObjects.forEach(o -> idsToFound.put(mapper.getModelId(o), o));
@@ -279,5 +285,10 @@ public class DatastoreDb implements ObjectDb {
 
   private String entityKind(Class clazz) {
     return mapper.entityKind(clazz);
+  }
+
+  @Override
+  public <T extends Model> CreateOrTransformOp.Builder createOrTransform(Class<T> clazz) {
+    return CreateOrTransformOp.builder().db(this).modelClass(clazz);
   }
 }

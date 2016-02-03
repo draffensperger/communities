@@ -1,6 +1,6 @@
 package org.draff;
 
-import org.draff.mapper.DatastoreDbFactory;
+import org.draff.mapper.DbWithMappers;
 import org.draff.model.FollowersGoal;
 import org.draff.model.FollowersTracker;
 import org.draff.model.UserDetail;
@@ -31,7 +31,7 @@ public class FollowersGoalUpdaterTest {
 
   @Before
   public void setup() {
-    db = DatastoreDbFactory.create(TestDatastore.get());
+    db = DbWithMappers.create(TestDatastore.get());
     TestDatastore.clean();
   }
 
