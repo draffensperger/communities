@@ -46,20 +46,28 @@ public class UserDetailBatchFetcher {
   private void fetchUsersByNames(String[] names) throws TwitterException {
     System.out.println("Fetching user details for " + names.length + " user names.");
     saveUserDetails(twitterUsers.lookupUsers(names));
-    db.createOrUpdateByNames(UserDetailRequestByName.class, Arrays.asList(names),
-        request -> { request.detailRetrieved = true; return request; });
+
+    db.createOrTransform(UserDetailRequestByName.class)
+        .namesOrIds(Arrays.asList(names))
+        .transformer(request -> ((UserDetailRequestByName)request).withDetailRetrieved(true))
+        .creator(id -> UserDetailRequestByName.create((String)id, true))
+        .now();
   }
 
   private void fetchUsersByIds(long[] ids) throws TwitterException {
     System.out.println("Fetching user details for " + ids.length + " user ids.");
     saveUserDetails(twitterUsers.lookupUsers(ids));
-    db.createOrUpdateByIds(UserDetailRequestById.class, Longs.asList(ids),
-        request -> request.withDetailRetrieved(true));
+
+    db.createOrTransform(UserDetailRequestById.class)
+        .namesOrIds(Longs.asList(ids))
+        .transformer(request -> ((UserDetailRequestById)request).withDetailRetrieved(true))
+        .creator(id -> UserDetailRequestById.create((Long)id, true))
+        .now();
   }
 
   private String[] neededUserNamesBatch() {
     return db.find(UserDetailRequestByName.class, DETAIL_NOT_RETRIEVED, BATCH_SIZE)
-        .stream().map(request -> request.id).toArray(String[]::new);
+        .stream().map(request -> request.id()).toArray(String[]::new);
   }
 
   private long[] neededUserIdsBatch() {
@@ -89,7 +97,7 @@ public class UserDetailBatchFetcher {
     db.createOrTransform(UserDetailRequestById.class)
         .namesOrIds(existingIds)
         .transformer(request -> ((UserDetailRequestById)request).withDetailRetrieved(true))
-        .creator(id -> UserDetailRequestById.builder().id((Long)id).detailRetrieved(true).build())
+        .creator(id -> UserDetailRequestById.create((Long)id, true))
         .now();
 
     requestIds.removeAll(existingIds);

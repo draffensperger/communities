@@ -71,10 +71,10 @@ class ManagingEntityMapper implements EntityMapper {
       return mapperFor(clazz.getSuperclass());
     }
 
-    if (methodOrNull(clazz, "create") != null) {
-      return new StaticFactoryEntityMapper(clazz, "create");
-    } else if (methodOrNull(clazz, "builder") != null) {
+    if (methodOrNull(clazz, "builder") != null) {
       return new BuilderEntityMapper(clazz, "builder");
+    } else if (methodOrNull(clazz, "create") != null) {
+      return new StaticFactoryEntityMapper(clazz, "create");
     } else {
       EntityMapper parentMapper;
       Field parentField = fieldOrNull(clazz, "parent");

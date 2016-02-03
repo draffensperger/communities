@@ -14,6 +14,10 @@ public abstract class UserDetailRequestById implements Model {
 
   UserDetailRequestById() {}
 
+  public static UserDetailRequestById create(long id, boolean detailRetrieved) {
+    return builder().id(id).detailRetrieved(detailRetrieved).build();
+  }
+
   public static Builder builder() {
     return new AutoValue_UserDetailRequestById.Builder()
         .detailRetrieved(false);

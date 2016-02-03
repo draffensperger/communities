@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.draff.support.EventualConsistencyHelper.waitForEventualSave;
+import static org.draff.support.EventualConsistencyHelper.waitOnEventualConsistency;
 import static org.junit.Assert.*;
 import static org.mockito.AdditionalAnswers.delegatesTo;
 import static org.mockito.Mockito.*;
@@ -34,11 +35,12 @@ public class UserDetailBatchFetcherTest {
 
   @Test
   public void testRetrieveUserDetailsById() throws TwitterException {
-    db.saveAll(Arrays.asList(
+    List<UserDetailRequestById> requests = Arrays.asList(
         UserDetailRequestById.builder().id(10L).build(),
         UserDetailRequestById.builder().id(20L).build(),
         UserDetailRequestById.builder().id(30L).build()
-    ));
+    );
+    db.saveAll(requests);
     waitForEventualSave(UserDetailRequestById.class);
 
     UserDetail existingDetail = new UserDetail();
@@ -48,10 +50,11 @@ public class UserDetailBatchFetcherTest {
     waitForEventualSave(UserDetail.class);
 
     new UserDetailBatchFetcher(db, mockUserResources()).fetchUserDetailsBatch();
+    waitOnEventualConsistency(
+        () -> db.find(UserDetail.class, requests.size()).size() == requests.size());
 
-    List<UserDetailRequestById> requests = db.find(UserDetailRequestById.class, 4);
-    assertEquals(3, requests.size());
-    requests.forEach(request -> assertTrue(request.detailRetrieved()));
+    db.find(UserDetailRequestById.class, 4)
+        .forEach(request -> assertTrue(request.detailRetrieved()));
 
     UserDetail detail1 = db.findById(UserDetail.class, 10);
     assertNotNull(detail1);
@@ -69,7 +72,7 @@ public class UserDetailBatchFetcherTest {
   @Test
   public void testRetrieveUserDetailsByName() throws TwitterException {
     db.saveAll(Arrays.asList(
-        new UserDetailRequestByName("user1"), new UserDetailRequestByName("user2")
+        UserDetailRequestByName.create("user1"), UserDetailRequestByName.create("user2")
     ));
     waitForEventualSave(UserDetailRequestByName.class);
 
@@ -81,7 +84,7 @@ public class UserDetailBatchFetcherTest {
 
     List<UserDetailRequestByName> requests = db.find(UserDetailRequestByName.class, 4);
     assertEquals(2, requests.size());
-    requests.forEach(request -> assertTrue(request.detailRetrieved));
+    requests.forEach(request -> assertTrue(request.detailRetrieved()));
   }
 
   private UsersResources mockUserResources() throws TwitterException {

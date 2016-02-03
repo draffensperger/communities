@@ -20,8 +20,8 @@ public class EmbeddedCommunityDetailRequester {
     List<EmbeddedCommunity> communities = db.find(EmbeddedCommunity.class, MAX_COMMUNITIES);
     List<UserDetailRequestByName> requests = new ArrayList<>();
     communities.forEach(community -> {
-      requests.add(new UserDetailRequestByName(community.embeddedScreenName()));
-      requests.add(new UserDetailRequestByName(community.parentScreenName()));
+      requests.add(UserDetailRequestByName.create(community.embeddedScreenName(), false));
+      requests.add(UserDetailRequestByName.create(community.parentScreenName(), false));
     });
     db.saveAll(requests);
   }
