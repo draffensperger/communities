@@ -39,7 +39,7 @@ class MutableFieldsEntityMapper implements EntityMapper {
     idField = fieldOrNull(modelClass, "id");
     if (idField == null) {
       try {
-        idMethod = modelClass.getDeclaredMethod("id", null);
+        idMethod = modelClass.getDeclaredMethod("id");
         idMethod.setAccessible(true);
       } catch(NoSuchMethodException e) {
         throw new ObjectDbException(e);

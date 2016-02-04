@@ -43,9 +43,8 @@ public class UserDetailBatchFetcherTest {
     db.saveAll(requests);
     waitForEventualSave(UserDetailRequestById.class);
 
-    UserDetail existingDetail = new UserDetail();
-    existingDetail.id = 30;
-    existingDetail.screenName = "user3";
+    UserDetail existingDetail = UserDetail.createFrom(
+        TwitterObjectFactory.createUser("{\"id\":30,\"screen_name\":\"user3\"}"));
     db.save(existingDetail);
     waitForEventualSave(UserDetail.class);
 
@@ -58,15 +57,15 @@ public class UserDetailBatchFetcherTest {
 
     UserDetail detail1 = db.findById(UserDetail.class, 10);
     assertNotNull(detail1);
-    assertEquals("user1", detail1.screenName);
+    assertEquals("user1", detail1.screenName());
 
     UserDetail detail2 = db.findById(UserDetail.class, 20);
     assertNotNull(detail2);
-    assertEquals("user2", detail2.screenName);
+    assertEquals("user2", detail2.screenName());
 
     UserDetail detail3 = db.findById(UserDetail.class, 30);
     assertNotNull(detail3);
-    assertEquals("user3", detail3.screenName);
+    assertEquals("user3", detail3.screenName());
   }
 
   @Test
@@ -79,8 +78,8 @@ public class UserDetailBatchFetcherTest {
     new UserDetailBatchFetcher(db, mockUserResources()).fetchUserDetailsBatch();
     waitForEventualSave(UserDetail.class);
 
-    assertEquals("user1", db.findById(UserDetail.class, 10L).screenName);
-    assertEquals("user2", db.findById(UserDetail.class, 20L).screenName);
+    assertEquals("user1", db.findById(UserDetail.class, 10L).screenName());
+    assertEquals("user2", db.findById(UserDetail.class, 20L).screenName());
 
     List<UserDetailRequestByName> requests = db.find(UserDetailRequestByName.class, 4);
     assertEquals(2, requests.size());

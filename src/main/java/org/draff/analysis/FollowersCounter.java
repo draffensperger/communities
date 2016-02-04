@@ -21,11 +21,11 @@ public class FollowersCounter {
     Aggregates aggregates = new Aggregates();
     while(!users.isEmpty()) {
       for (UserDetail user: users) {
-        aggregates.totalFollowers += user.followersCount;
-        aggregates.totalFriends += user.friendsCount;
+        aggregates.totalFollowers += user.followersCount();
+        aggregates.totalFriends += user.friendsCount();
         aggregates.totalUsers++;
-        if (user.id > lastUserId) {
-          lastUserId = user.id;
+        if (user.id() > lastUserId) {
+          lastUserId = user.id();
         }
       }
       users = db.findOrderedById(UserDetail.class, BATCH_SIZE, lastUserId + 1L);

@@ -37,7 +37,7 @@ public class FollowersComparer {
 
   private Set<Long> followerIds(String screenName) {
     UserDetail detail = userbyScreenName(screenName);
-    FollowersTracker tracker = db.findById(FollowersTracker.class, detail.id);
+    FollowersTracker tracker = db.findById(FollowersTracker.class, detail.id());
     HashSet<Long> followerIds = new HashSet<>();
 
     long nextMinId = Long.MIN_VALUE;

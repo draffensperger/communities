@@ -42,11 +42,11 @@ public class EmbeddedCommunityFollowersCounts {
       for (EmbeddedCommunity community : communities) {
         printer.printRecord(
             community.embeddedScreenName(),
-            userDetails.get(community.embeddedScreenName().toLowerCase()).followersCount
+            userDetails.get(community.embeddedScreenName().toLowerCase()).followersCount()
         );
         printer.printRecord(
             community.parentScreenName(),
-            userDetails.get(community.parentScreenName().toLowerCase()).followersCount
+            userDetails.get(community.parentScreenName().toLowerCase()).followersCount()
         );
       }
       printer.close();

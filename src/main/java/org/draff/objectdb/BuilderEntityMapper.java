@@ -50,8 +50,12 @@ public class BuilderEntityMapper implements EntityMapper {
   public Entity toEntity(Model model) {
     Entity.Builder builder = Entity.newBuilder();
     builder.setKey(makeKey(entityKind(model.getClass()), getModelId(model)));
-    propertyMethods.forEach(method ->
-        builder.addProperty(makeProperty(method.getName(), toValue(invoke(method, model)))));
+    for (Method method : propertyMethods) {
+      Object value = invoke(method, model);
+      if (value != null) {
+        builder.addProperty(makeProperty(method.getName(), toValue(value)));
+      }
+    }
     return builder.build();
   }
 

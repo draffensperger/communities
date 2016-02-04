@@ -67,7 +67,7 @@ public class FollowersBatchFetcher {
         // record for it has not been retrieved yet. In this case, rather than making the explicit
         // claim that the followers have been retrieved, just set that we won't retrieve them.
         tracker.shouldRetrieveFollowers = false;
-      } else if (userDetail.isProtected) {
+      } else if (userDetail.isProtected()) {
         // The 401 error is a result of the protected status of the user and is totally normal
         // Just mark that we have retrieved the followers for that users and move on.
         tracker.followersRetrieved = true;

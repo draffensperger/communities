@@ -91,7 +91,7 @@ public class UserDetailBatchFetcher {
     HashSet<Long> requestIds = new HashSet<>(requestIdsList);
 
     List<Long> existingIds = db.findByIds(UserDetail.class, requestIds).stream()
-        .map(detail -> detail.id).collect(Collectors.toList());
+        .map(detail -> detail.id()).collect(Collectors.toList());
 
     // Since there are already UserDetail records for those request ids, mark those as retrieved.
     db.createOrTransform(UserDetailRequestById.class)
@@ -116,6 +116,6 @@ public class UserDetailBatchFetcher {
   }
 
   private void saveUserDetails(List<User> users) {
-    db.saveAll(users.stream().map(u -> new UserDetail(u)).collect(Collectors.toList()));
+    db.saveAll(users.stream().map(u -> UserDetail.createFrom(u)).collect(Collectors.toList()));
   }
 }

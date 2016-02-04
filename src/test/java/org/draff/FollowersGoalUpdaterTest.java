@@ -58,11 +58,11 @@ public class FollowersGoalUpdaterTest {
 
     UserDetail userDetail1 = db.findById(UserDetail.class, 10);
     assertNotNull(userDetail1);
-    assertEquals("User1", userDetail1.screenName);
+    assertEquals("User1", userDetail1.screenName());
 
     UserDetail userDetail2 = db.findById(UserDetail.class, 20);
     assertNotNull(userDetail2);
-    assertEquals("user2", userDetail2.screenName);
+    assertEquals("user2", userDetail2.screenName());
 
     FollowersTracker followersTracker1 = db.findById(FollowersTracker.class, 10);
     assertNotNull(followersTracker1);
