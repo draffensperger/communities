@@ -67,10 +67,10 @@ public class FollowersGoalUpdater {
 
   private FollowersTracker updatedFollowersTracker(FollowersTracker.Builder builder, long depthGoal) {
     if (depthGoal >= 1) {
-      builder.retrieveFollowers(true);
+      builder.shouldFetchFollowers(true);
     }
     if (depthGoal >= 2) {
-      builder.retrieveLevel2Followers(true);
+      builder.shouldFetchLevel2Followers(true);
     }
     return builder.build();
   }

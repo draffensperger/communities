@@ -61,11 +61,11 @@ public class FollowersGoalUpdaterTest {
 
     FollowersTracker followersTracker1 = db.findById(FollowersTracker.class, 10);
     assertNotNull(followersTracker1);
-    assertFalse(followersTracker1.retrieveLevel2Followers());
+    assertFalse(followersTracker1.shouldFetchLevel2Followers());
 
     FollowersTracker followersTracker2 = db.findById(FollowersTracker.class, 20);
     assertNotNull(followersTracker2);
-    assertTrue(followersTracker2.retrieveLevel2Followers());
+    assertTrue(followersTracker2.shouldFetchLevel2Followers());
   }
 
   private UsersResources mockUserResources() throws TwitterException {

@@ -10,28 +10,28 @@ import org.draff.objectdb.Model;
 @AutoValue
 public abstract class FollowersTracker implements Model {
   public abstract long id();
-  public abstract boolean retrieveFollowers();
-  public abstract boolean retrieveLevel2Followers();
-  public abstract boolean followersRetrieved();
-  public abstract boolean level2FollowersRetrieved();
+  public abstract boolean shouldFetchFollowers();
+  public abstract boolean shouldFetchLevel2Followers();
+  public abstract boolean followersFetched();
+  public abstract boolean level2FollowersFetched();
   public abstract long followersCursor();
 
   public static Builder builder() {
     return new AutoValue_FollowersTracker.Builder()
         // Default cursor to -1 as that is the starting Twitter retrieval cursor.
         .followersCursor(-1L)
-        .retrieveFollowers(false)
-        .retrieveLevel2Followers(false)
-        .followersRetrieved(false)
-        .level2FollowersRetrieved(false);
+        .shouldFetchFollowers(false)
+        .shouldFetchLevel2Followers(false)
+        .followersFetched(false)
+        .level2FollowersFetched(false);
   }
 
-  public FollowersTracker withRetrieveFollowers(boolean value) {
-    return toBuilder().retrieveFollowers(value).build();
+  public FollowersTracker withShouldFetchFollowers(boolean value) {
+    return toBuilder().shouldFetchFollowers(value).build();
   }
 
-  public FollowersTracker withFollowersRetrieved(boolean value) {
-    return toBuilder().followersRetrieved(value).build();
+  public FollowersTracker withFollowersFetched(boolean value) {
+    return toBuilder().followersFetched(value).build();
   }
 
   public FollowersTracker withFollowersCursor(long value) {
@@ -43,10 +43,10 @@ public abstract class FollowersTracker implements Model {
   @AutoValue.Builder
   public abstract static class Builder {
     public abstract Builder id(long value);
-    public abstract Builder retrieveFollowers(boolean value);
-    public abstract Builder retrieveLevel2Followers(boolean value);
-    public abstract Builder followersRetrieved(boolean value);
-    public abstract Builder level2FollowersRetrieved(boolean value);
+    public abstract Builder shouldFetchFollowers(boolean value);
+    public abstract Builder shouldFetchLevel2Followers(boolean value);
+    public abstract Builder followersFetched(boolean value);
+    public abstract Builder level2FollowersFetched(boolean value);
     public abstract Builder followersCursor(long value); // = -1L;
     public abstract FollowersTracker build();
   }

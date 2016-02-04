@@ -22,8 +22,8 @@ public class FollowersBatchFetcher {
   private FriendsFollowersResources friendsFollowers;
 
   private final static Map<String, Object> NEEDS_FOLLOWERS =
-      new ImmutableMap.Builder<String, Object>().put("retrieveFollowers", true)
-          .put("followersRetrieved", false).build();
+      new ImmutableMap.Builder<String, Object>().put("shouldFetchFollowers", true)
+          .put("followersFetched", false).build();
 
   public FollowersBatchFetcher(ObjectDb db, FriendsFollowersResources friendsFollowers) {
     this.db = db;
@@ -74,11 +74,11 @@ public class FollowersBatchFetcher {
           // In this case it's most likely that the user is protected, but perhaps the UserDetail
           // record for it has not been retrieved yet. In this case, rather than making the explicit
           // claim that the followers have been retrieved, just set that we won't retrieve them.
-          tracker = tracker.withRetrieveFollowers(false);
+          tracker = tracker.withShouldFetchFollowers(false);
         } else if (userDetail.isProtected()) {
           // The 401 error is a result of the protected status of the user and is totally normal
           // Just mark that we have retrieved the followers for that users and move on.
-          tracker = tracker.withFollowersRetrieved(true);
+          tracker = tracker.withFollowersFetched(true);
         } else {
           // The user does exist but was not marked as protected. This may be a genuinely exceptional
           // circumstance (or the user marked themselves as protected since the retrieval began).
@@ -101,16 +101,16 @@ public class FollowersBatchFetcher {
       if (followerIds.hasNext()) {
         tracker = tracker.withFollowersCursor(followerIds.getNextCursor());
       } else {
-        tracker = tracker.withFollowersRetrieved(true).withFollowersCursor(-1L);
+        tracker = tracker.withFollowersFetched(true).withFollowersCursor(-1L);
       }
     }
 
     private void addLevel2TrackersIfNeeded(long[] friendOrFollowerIds) {
-      if (tracker.retrieveLevel2Followers()) {
+      if (tracker.shouldFetchLevel2Followers()) {
         db.createOrTransform(FollowersTracker.class)
             .namesOrIds(Longs.asList(friendOrFollowerIds))
-            .creator(id -> FollowersTracker.builder().id((Long)id).retrieveFollowers(true).build())
-            .transformer(level2Tracker -> ((FollowersTracker)level2Tracker).withRetrieveFollowers(true))
+            .creator(id -> FollowersTracker.builder().id((Long)id).shouldFetchFollowers(true).build())
+            .transformer(level2Tracker -> ((FollowersTracker)level2Tracker).withShouldFetchFollowers(true))
             .now();
         addUserDetailRequests(friendOrFollowerIds);
       }

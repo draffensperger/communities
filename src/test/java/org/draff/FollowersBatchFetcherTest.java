@@ -33,7 +33,7 @@ public class FollowersBatchFetcherTest {
 
   @Test
   public void testRetrieveFollowers() throws TwitterException {
-    FollowersTracker tracker = FollowersTracker.builder().id(1L).retrieveFollowers(true).build();
+    FollowersTracker tracker = FollowersTracker.builder().id(1L).shouldFetchFollowers(true).build();
     db.save(tracker);
     waitForEventualSave(FollowersTracker.class);
 
@@ -42,8 +42,8 @@ public class FollowersBatchFetcherTest {
     waitForEventualSave(Follower.class);
 
     FollowersTracker updatedTracker = db.findById(FollowersTracker.class, 1L);
-    assertEquals(true, updatedTracker.retrieveFollowers());
-    assertEquals(false, updatedTracker.followersRetrieved());
+    assertEquals(true, updatedTracker.shouldFetchFollowers());
+    assertEquals(false, updatedTracker.followersFetched());
     assertEquals(1001L, updatedTracker.followersCursor());
 
     List<Follower> followers = db.findChildren(tracker, Follower.class, 3, Long.MIN_VALUE);
@@ -62,7 +62,7 @@ public class FollowersBatchFetcherTest {
   @Test
   public void testAddsLevel2Trackers() throws TwitterException {
     FollowersTracker existingTracker1 = FollowersTracker.builder().id(1L)
-        .retrieveFollowers(true).retrieveLevel2Followers(true).build();
+        .shouldFetchFollowers(true).shouldFetchLevel2Followers(true).build();
 
     FollowersTracker existingTracker2 = FollowersTracker.builder().id(2L).build();
 
@@ -99,17 +99,17 @@ public class FollowersBatchFetcherTest {
     FollowersTracker tracker1 = trackers.get(0);
     assertEquals(1L, tracker1.id());
     // check that it stored the previous value
-    assertTrue(tracker1.retrieveLevel2Followers());
+    assertTrue(tracker1.shouldFetchLevel2Followers());
 
     FollowersTracker tracker2 = trackers.get(1);
     assertEquals(2L, tracker2.id());
-    assertTrue(tracker2.retrieveFollowers());
+    assertTrue(tracker2.shouldFetchFollowers());
 
     FollowersTracker tracker3 = trackers.get(2);
     assertEquals(3L, tracker3.id());
-    assertTrue(tracker3.retrieveFollowers());
+    assertTrue(tracker3.shouldFetchFollowers());
     // check that it defaults level to retrieval fields to false
-    assertFalse(tracker3.retrieveLevel2Followers());
+    assertFalse(tracker3.shouldFetchLevel2Followers());
   }
 
   private FriendsFollowersResources mockFriendsFollowers() throws TwitterException {
