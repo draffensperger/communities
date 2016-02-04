@@ -7,9 +7,7 @@ import twitter4j.TwitterException;
 import twitter4j.User;
 import twitter4j.api.UsersResources;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -40,7 +38,7 @@ public class FollowersGoalUpdater {
   private String[] screenNames(List<FollowersGoal> trackers) {
     String[] screenNames = new String[trackers.size()];
     for (int i = 0; i < trackers.size(); i++) {
-      screenNames[i] = trackers.get(i).id;
+      screenNames[i] = trackers.get(i).id();
     }
     return screenNames;
   }
@@ -55,20 +53,26 @@ public class FollowersGoalUpdater {
     Map<String, Long> screenNamesToIds = new HashMap<>();
     users.forEach(u -> screenNamesToIds.put(u.getScreenName().toLowerCase(), u.getId()));
     trackers.forEach(tracker ->
-        updateFollowersTracker(screenNamesToIds.get(tracker.id.toLowerCase()), tracker.depthGoal)
+        updateFollowersTracker(screenNamesToIds.get(tracker.id().toLowerCase()), tracker.depthGoal())
     );
   }
 
   private void updateFollowersTracker(long userId, long depthGoal) {
-    db.createOrUpdateById(FollowersTracker.class, userId, tracker -> {
-      if (depthGoal >= 1) {
-        tracker.shouldRetrieveFollowers = true;
-      }
-      if (depthGoal >= 2) {
-        tracker.shouldRetrieveLevel2Followers = true;
-      }
-      return tracker;
-    });
+    db.createOrTransform(FollowersTracker.class)
+        .namesOrIds(Arrays.asList(userId))
+        .creator(id -> updatedFollowersTracker(FollowersTracker.builder().id((Long)id), depthGoal))
+        .transformer(existing -> updatedFollowersTracker(((FollowersTracker)existing).toBuilder(), depthGoal))
+        .now();
+  }
+
+  private FollowersTracker updatedFollowersTracker(FollowersTracker.Builder builder, long depthGoal) {
+    if (depthGoal >= 1) {
+      builder.retrieveFollowers(true);
+    }
+    if (depthGoal >= 2) {
+      builder.retrieveLevel2Followers(true);
+    }
+    return builder.build();
   }
 
   private void saveUserDetails(List<User> users) {

@@ -37,17 +37,12 @@ public class FollowersGoalUpdaterTest {
 
   @Test
   public void testRetrieveFollowersGoalDetails() throws TwitterException {
-    FollowersGoal goal1 = new FollowersGoal();
-    goal1.id = "user1";
-    goal1.depthGoal = 1;
-    FollowersGoal goal2 = new FollowersGoal();
-    goal2.id = "user2";
-    goal2.depthGoal = 2;
+    FollowersGoal goal1 = FollowersGoal.create("user1", 1L);
+    FollowersGoal goal2 = FollowersGoal.create("user2", 2L);
     db.saveAll(Arrays.asList(goal1, goal2));
     waitForEventualSave(FollowersGoal.class);
 
-    FollowersTracker existingFollowersTracker = new FollowersTracker();
-    existingFollowersTracker.id = 10;
+    FollowersTracker existingFollowersTracker = FollowersTracker.builder().id(10L).build();
     db.save(existingFollowersTracker);
     waitForEventualSave(FollowersTracker.class);
 
@@ -66,11 +61,11 @@ public class FollowersGoalUpdaterTest {
 
     FollowersTracker followersTracker1 = db.findById(FollowersTracker.class, 10);
     assertNotNull(followersTracker1);
-    assertFalse(followersTracker1.shouldRetrieveLevel2Followers);
+    assertFalse(followersTracker1.retrieveLevel2Followers());
 
     FollowersTracker followersTracker2 = db.findById(FollowersTracker.class, 20);
     assertNotNull(followersTracker2);
-    assertTrue(followersTracker2.shouldRetrieveLevel2Followers);
+    assertTrue(followersTracker2.retrieveLevel2Followers());
   }
 
   private UsersResources mockUserResources() throws TwitterException {

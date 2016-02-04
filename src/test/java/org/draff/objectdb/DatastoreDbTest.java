@@ -189,9 +189,6 @@ public class DatastoreDbTest {
     assertEquals(2, friends.size());
 
     assertEquals(4L, friends.get(0).id);
-    assertEquals(1L, friends.get(0).parent.id());
-
     assertEquals(5L, friends.get(1).id);
-    assertEquals(1L, friends.get(1).parent.id());
   }
 }

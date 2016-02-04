@@ -41,9 +41,7 @@ public class Main {
       System.out.println("Avg followers: " + aggregates.avgFollowers());
       System.out.println("Avg friends: " + aggregates.avgFriends());
     } else if (command.equals("goal")) {
-      FollowersGoal goal = new FollowersGoal();
-      goal.id = args[1];
-      goal.depthGoal = Long.valueOf(args[2]);
+      FollowersGoal goal = FollowersGoal.create(args[1], Long.valueOf(args[2]));
       db.save(goal);
     } else if (command.equals("compare")) {
       FollowersComparer comparer = new FollowersComparer(db, args[1], args[2]);

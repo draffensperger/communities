@@ -59,7 +59,7 @@ public class DatastoreDb implements ObjectDb {
     List<Entity> entities = util.findChildren(entityKind(parent.getClass()),
         mapper.getModelId(parent), entityKind(clazz), limit, minId);
     List<T> models = fromEntities(clazz, entities);
-    setParents(models, parent);
+    //setParents(models, parent);
     return models;
   }
 
