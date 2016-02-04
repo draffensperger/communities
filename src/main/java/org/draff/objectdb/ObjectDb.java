@@ -12,9 +12,6 @@ public interface ObjectDb {
   void save(Model object);
   void saveAll(List<? extends Model> objects);
   <T extends Model> List<T> findChildren(Model parent, Class<T> childClazz, int limit, long minId);
-  <T extends Model> void createOrUpdateById(Class<T> clazz, long id, ObjectTransformer<T> updater);
-  <T extends Model> void createOrUpdateByIds(Class<T> clazz, List<Long> ids, ObjectTransformer<T> updater);
-  <T extends Model> void createOrUpdateByNames(Class<T> clazz, List<String> names, ObjectTransformer<T> updater);
   <T extends Model> List<T> find(Class<T> clazz, int limit);
   <T extends Model> List<T> find(Class<T> clazz, Map<String, Object> fieldConstraints, int limit);
   <T extends Model> T findOne(Class<T> clazz);
