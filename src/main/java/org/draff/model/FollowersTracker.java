@@ -16,6 +16,8 @@ public abstract class FollowersTracker implements Model {
   public abstract boolean level2FollowersFetched();
   public abstract long followersCursor();
 
+  FollowersTracker() {}
+
   public static Builder builder() {
     return new AutoValue_FollowersTracker.Builder()
         // Default cursor to -1 as that is the starting Twitter retrieval cursor.

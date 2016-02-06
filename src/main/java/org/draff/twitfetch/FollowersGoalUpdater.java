@@ -61,7 +61,7 @@ public class FollowersGoalUpdater {
     db.createOrTransform(FollowersTracker.class)
         .namesOrIds(Arrays.asList(userId))
         .creator(id -> updatedFollowersTracker(FollowersTracker.builder().id((Long)id), depthGoal))
-        .transformer(existing -> updatedFollowersTracker(((FollowersTracker)existing).toBuilder(), depthGoal))
+        .transformer(existing -> updatedFollowersTracker(existing.toBuilder(), depthGoal))
         .now();
   }
 
@@ -85,7 +85,7 @@ public class FollowersGoalUpdater {
     db.createOrTransform(UserDetailRequestById.class)
         .namesOrIds(ids)
         .creator(id -> UserDetailRequestById.builder().id((Long)id).detailRetrieved(true).build())
-        .transformer(request -> ((UserDetailRequestById)request).withDetailRetrieved(true))
+        .transformer(request -> request.withDetailRetrieved(true))
         .now();
   }
 }

@@ -12,6 +12,8 @@ public abstract class FollowersGoal implements Model {
   public abstract String id();
   public abstract long depthGoal();
 
+  FollowersGoal() {}
+
   public static FollowersGoal create(String id, long depthGoal) {
     return new AutoValue_FollowersGoal(id, depthGoal);
   }

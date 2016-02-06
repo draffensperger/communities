@@ -110,7 +110,7 @@ public class FollowersBatchFetcher {
         db.createOrTransform(FollowersTracker.class)
             .namesOrIds(Longs.asList(friendOrFollowerIds))
             .creator(id -> FollowersTracker.builder().id((Long)id).shouldFetchFollowers(true).build())
-            .transformer(level2Tracker -> ((FollowersTracker)level2Tracker).withShouldFetchFollowers(true))
+            .transformer(level2Tracker -> level2Tracker.withShouldFetchFollowers(true))
             .now();
         addUserDetailRequests(friendOrFollowerIds);
       }

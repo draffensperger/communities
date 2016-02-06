@@ -50,6 +50,7 @@ public abstract class UserDetail implements Model {
   public abstract boolean isProfileBackgroundTiled();
 
   UserDetail() {}
+
   public static UserDetail createFrom(twitter4j.User user) {
     return buildFromTwitterUser(user);
   }

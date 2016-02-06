@@ -49,7 +49,7 @@ public class UserDetailBatchFetcher {
 
     db.createOrTransform(UserDetailRequestByName.class)
         .namesOrIds(Arrays.asList(names))
-        .transformer(request -> ((UserDetailRequestByName)request).withDetailRetrieved(true))
+        .transformer(request -> request.withDetailRetrieved(true))
         .creator(id -> UserDetailRequestByName.create((String)id, true))
         .now();
   }
@@ -60,7 +60,7 @@ public class UserDetailBatchFetcher {
 
     db.createOrTransform(UserDetailRequestById.class)
         .namesOrIds(Longs.asList(ids))
-        .transformer(request -> ((UserDetailRequestById)request).withDetailRetrieved(true))
+        .transformer(request -> request.withDetailRetrieved(true))
         .creator(id -> UserDetailRequestById.create((Long)id, true))
         .now();
   }
@@ -96,7 +96,7 @@ public class UserDetailBatchFetcher {
     // Since there are already UserDetail records for those request ids, mark those as retrieved.
     db.createOrTransform(UserDetailRequestById.class)
         .namesOrIds(existingIds)
-        .transformer(request -> ((UserDetailRequestById)request).withDetailRetrieved(true))
+        .transformer(request -> request.withDetailRetrieved(true))
         .creator(id -> UserDetailRequestById.create((Long)id, true))
         .now();
 

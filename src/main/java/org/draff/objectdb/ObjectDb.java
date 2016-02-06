@@ -25,5 +25,5 @@ public interface ObjectDb {
   void delete(Model object);
   void deleteAll(List<? extends Model> object);
   void deleteAllByIds(Class clazz, Collection<Long> ids);
-  <T extends Model> CreateOrTransformOp.Builder createOrTransform(Class<T> clazz);
+  <T extends Model> CreateOrTransformOp.Builder<T> createOrTransform(Class<T> clazz);
 }

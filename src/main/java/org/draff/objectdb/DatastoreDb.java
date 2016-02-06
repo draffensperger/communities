@@ -3,13 +3,12 @@ package org.draff.objectdb;
 import com.google.api.services.datastore.DatastoreV1.*;
 import com.google.api.services.datastore.client.Datastore;
 
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.google.api.services.datastore.client.DatastoreHelper.makeFilter;
 import static com.google.api.services.datastore.client.DatastoreHelper.makeKey;
-import static org.draff.objectdb.ValueHelper.*;
+import static org.draff.objectdb.ValueHelper.toValue;
 
 /**
  * Created by dave on 1/1/16.
@@ -59,25 +58,7 @@ public class DatastoreDb implements ObjectDb {
     List<Entity> entities = util.findChildren(entityKind(parent.getClass()),
         mapper.getModelId(parent), entityKind(clazz), limit, minId);
     List<T> models = fromEntities(clazz, entities);
-    //setParents(models, parent);
     return models;
-  }
-
-
-  private void setParents(List<? extends Model> children, Model parent) {
-    if (children.isEmpty()) {
-      return;
-    }
-    Class childClass = children.get(0).getClass();
-    try {
-      Field parentField = childClass.getDeclaredField("parent");
-      parentField.setAccessible(true);
-      for (Model child : children) {
-        parentField.set(child, parent);
-      }
-    } catch(NoSuchFieldException|IllegalAccessException e) {
-      throw new ObjectDbException(e);
-    }
   }
 
   @Override
@@ -195,7 +176,7 @@ public class DatastoreDb implements ObjectDb {
   }
 
   @Override
-  public <T extends Model> CreateOrTransformOp.Builder createOrTransform(Class<T> clazz) {
-    return CreateOrTransformOp.builder().db(this).modelClass(clazz);
+  public <T extends Model> CreateOrTransformOp.Builder<T> createOrTransform(Class<T> clazz) {
+    return CreateOrTransformOp.builder(clazz).db(this);
   }
 }
