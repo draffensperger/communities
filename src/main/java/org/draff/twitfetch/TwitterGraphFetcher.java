@@ -8,6 +8,8 @@ import twitter4j.TwitterException;
 
 import java.util.Map;
 
+import javax.inject.Inject;
+
 /**
  * Created by dave on 1/14/16.
  */
@@ -15,6 +17,7 @@ public class TwitterGraphFetcher {
   private ObjectDb objectDb;
   private Twitter twitter;
 
+  @Inject
   public TwitterGraphFetcher(ObjectDb objectDb, Twitter twitter) {
     this.objectDb = objectDb;
     this.twitter = twitter;

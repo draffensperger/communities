@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Inject;
+
 /**
  * Created by dave on 1/7/16.
  */
@@ -25,6 +27,7 @@ public class FollowersBatchFetcher {
       new ImmutableMap.Builder<String, Object>().put("shouldFetchFollowers", true)
           .put("followersFetched", false).build();
 
+  @Inject
   public FollowersBatchFetcher(ObjectDb db, FriendsFollowersResources friendsFollowers) {
     this.db = db;
     this.friendsFollowers = friendsFollowers;
