@@ -17,4 +17,4 @@ env:
     - DATASTORE_PROJECT_ID=twitter-fetch
 before_install:
   - bin/install_gcloud_sdk
-  - gcloud beta emulators datastore start --project=twitter-fetch --no-store-on-disk
+  - gcloud beta emulators datastore start --project=twitter-fetch --no-store-on-disk &
