@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+# Installs Google cloud sdk if it has not already been installed
+(
+  export GCLOUD_SDK_FILE=google-cloud-sdk-116.0.0-linux-x86_64.tar.gz
+  cd $HOME && \
+  curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/$GCLOUD_SDK_FILE && \
+  tar xfz $GCLOUD_SDK_FILE && \
+  rm $GCLOUD_SDK_FILE && \
+  cd google-cloud-sdk && \
+  ./install.sh
+)
