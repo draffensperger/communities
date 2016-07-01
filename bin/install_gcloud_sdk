@@ -1,21 +1,19 @@
 #!/usr/bin/env bash
 
-# # Installs Google cloud sdk if it has not already been installed
-# (
-#   export GCLOUD_SDK_FILE=google-cloud-sdk-116.0.0-linux-x86_64.tar.gz
-#   cd $HOME && \
-#   curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/$GCLOUD_SDK_FILE && \
-#   tar xfz $GCLOUD_SDK_FILE && \
-#   rm $GCLOUD_SDK_FILE && \
-#   cd google-cloud-sdk && \
-#   ./install.sh && \
-#   cd $HOME && \
-#   ./google-cloud-sdk/bin/gcloud components install beta
-# )
-#
+# Installs Google cloud sdk if it has not already been installed
 
-export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
-echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee /etc/apt/sources.list.d/google-cloud-sdk.list
-curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-sudo apt-get update && sudo apt-get install google-cloud-sdk
-gcloud components install beta
+(
+  export GCLOUD_SDK_FILE=google-cloud-sdk-116.0.0-linux-x86_64.tar.gz
+  cd $HOME && \
+  curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/$GCLOUD_SDK_FILE && \
+  tar xfz $GCLOUD_SDK_FILE && \
+  rm $GCLOUD_SDK_FILE && \
+  ./google-cloud-sdk/bin/gcloud components install beta
+)
+
+
+# export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
+# echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee /etc/apt/sources.list.d/google-cloud-sdk.list
+# curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+# sudo apt-get update && sudo apt-get install google-cloud-sdk
+# gcloud components install beta
