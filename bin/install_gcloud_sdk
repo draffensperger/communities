@@ -8,5 +8,7 @@
   tar xfz $GCLOUD_SDK_FILE && \
   rm $GCLOUD_SDK_FILE && \
   cd google-cloud-sdk && \
-  ./install.sh
+  ./install.sh && \
+  cd $HOME && \
+  ./google-cloud-sdk/bin/gcloud components install beta
 )
