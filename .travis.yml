@@ -2,21 +2,7 @@ sudo: false
 language: java
 jdk:
   - oraclejdk8
-# cache:
-  # directories:
-  # - "$HOME/google-cloud-sdk/"
-env:
-  global:
-    - PATH=$PATH:${HOME}/google-cloud-sdk/bin
-    - CLOUDSDK_CORE_DISABLE_PROMPTS=1
-    - DATASTORE_DATASET=twitter-fetch
-    - DATASTORE_DATASET=twitter-fetch
-    - DATASTORE_EMULATOR_HOST_PATH=localhost:8550/datastore
-    - DATASTORE_EMULATOR_HOST=localhost:8550
-    - DATASTORE_HOST=http://localhost:8550
-    - DATASTORE_PROJECT_ID=twitter-fetch
 before_install:
   - bin/install_gcloud_sdk
-  - gcloud beta emulators datastore start --project=twitter-fetch --no-store-on-disk &
 script:
-  - mvn clean test
+  - bin/run_tests
