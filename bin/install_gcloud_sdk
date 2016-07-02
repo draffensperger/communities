@@ -10,5 +10,3 @@
   ./google-cloud-sdk/bin/gcloud components install beta &&
   ./google-cloud-sdk/bin/gcloud components install gcd-emulator
 )
-
-export PATH=$PATH:${HOME}/google-cloud-sdk/bin
