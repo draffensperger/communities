@@ -5,4 +5,4 @@ jdk:
 before_install:
   - bin/install_gcloud_sdk
 script:
-  - bin/run_tests
+  - mvn clean test
