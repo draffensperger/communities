@@ -4,5 +4,6 @@ jdk:
   - oraclejdk8
 before_install:
   - bin/install_gcloud_sdk
-script:
-  - mvn clean test
+  - bin/start_datastore_emulator
+script: 
+  - bin/run_tests
