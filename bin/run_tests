@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 PATH=$PATH:${HOME}/google-cloud-sdk/bin
-CLOUDSDK_CORE_DISABLE_PROMPTS=1
 DATASTORE_DATASET=twitter-fetch
 DATASTORE_EMULATOR_HOST_PATH=localhost:8550/datastore
 DATASTORE_EMULATOR_HOST=localhost:8550
