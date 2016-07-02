@@ -3,8 +3,8 @@
 # Installs Google cloud sdk if it has not already been installed
 
 (
-  GCLOUD_SDK_FILE=google-cloud-sdk-116.0.0-linux-x86_64.tar.gz
-  CLOUDSDK_CORE_DISABLE_PROMPTS=1
+  export GCLOUD_SDK_FILE=google-cloud-sdk-116.0.0-linux-x86_64.tar.gz
+  export CLOUDSDK_CORE_DISABLE_PROMPTS=1
   cd $HOME && \
   curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/$GCLOUD_SDK_FILE && \
   tar xfz $GCLOUD_SDK_FILE && \
