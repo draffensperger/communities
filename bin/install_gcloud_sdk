@@ -9,7 +9,8 @@
   curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/$GCLOUD_SDK_FILE && \
   tar xfz $GCLOUD_SDK_FILE && \
   rm $GCLOUD_SDK_FILE && \
-  ./google-cloud-sdk/bin/gcloud components install beta
+  ./google-cloud-sdk/bin/gcloud components install beta &&
+  ./google-cloud-sdk/bin/gcloud components install gcd-emulator
 )
 
 
