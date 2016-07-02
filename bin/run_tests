@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 
 export PATH=$PATH:${HOME}/google-cloud-sdk/bin
-export DATASTORE_DATASET=twitter-fetch
-export DATASTORE_EMULATOR_HOST_PATH=localhost:8850/datastore
-export DATASTORE_EMULATOR_HOST=localhost:8850
-export DATASTORE_HOST=http://localhost:8850
-export DATASTORE_PROJECT_ID=twitter-fetch
+
+$(gcloud beta emulators datastore env-init)
+
+echo environment
+env
+echo ------
 
 gcloud beta emulators datastore start --quiet --project=twitter-fetch --no-store-on-disk &
 DATASTORE_PID=$!
