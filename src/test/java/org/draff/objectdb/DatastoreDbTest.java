@@ -88,7 +88,7 @@ public class DatastoreDbTest {
     assertNotNull(db.findOne(FollowersCursor.class));
 
     db.delete(cursor);
-    waitForEventualDelete(Follower.class);
+    waitForEventualDelete(FollowersCursor.class);
 
     assertNull(db.findOne(FollowersCursor.class));
   }

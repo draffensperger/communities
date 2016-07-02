@@ -18,3 +18,5 @@ env:
 before_install:
   - bin/install_gcloud_sdk
   - gcloud beta emulators datastore start --project=twitter-fetch --no-store-on-disk &
+script:
+  - mvn clean test
