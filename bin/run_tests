@@ -1,2 +1,2 @@
-mvn clean test
 $(gcloud beta emulators datastore env-init)
+mvn clean test

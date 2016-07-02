@@ -5,8 +5,9 @@ jdk:
 env:
   global:
     - PATH=$PATH:${HOME}/google-cloud-sdk/bin
-before_install:
+install:
   - bin/install_gcloud_sdk
+before_script:
   - bin/start_datastore_emulator
 script: 
   - bin/run_tests
