@@ -7,6 +7,7 @@ import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.inject.Inject;
 
@@ -14,6 +15,8 @@ import javax.inject.Inject;
  * Created by dave on 1/14/16.
  */
 public class TwitterGraphFetcher {
+  private static final Logger log = Logger.getLogger(TwitterGraphFetcher.class.getName());
+
   private ObjectDb objectDb;
   private Twitter twitter;
 
@@ -46,9 +49,11 @@ public class TwitterGraphFetcher {
         new UserDetailBatchFetcher(objectDb, twitter.users());
     UserDetailFetcher userDetailFetcher = new UserDetailFetcher(userDetailBatchFetcher);
 
-
     Thread followersFetcherThread = new Thread(followersFetcher);
     Thread userDetailFetcherThread = new Thread(userDetailFetcher);
+
+    log.info("Starting Twitter graph fetch ...");
+    log.fine("hello fine!");
 
     followersFetcherThread.start();
     userDetailFetcherThread.start();

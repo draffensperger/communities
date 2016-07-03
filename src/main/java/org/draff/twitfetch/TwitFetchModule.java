@@ -24,10 +24,10 @@ import java.security.GeneralSecurityException;
  * Created by dave on 2/6/16.
  */
 public class TwitFetchModule extends AbstractModule {
+  private Config conf = ConfigFactory.load();
+
   @Override
   protected void configure() {
-    // interface to implementation
-    //bind(TransactionLog.class).to(DatabaseTransactionLog.class);
   }
 
   @Provides
@@ -37,8 +37,6 @@ public class TwitFetchModule extends AbstractModule {
 
   @Provides
   Twitter provideTwitter() {
-    Config conf = ConfigFactory.load();
-
     System.setProperty("twitter4j.loggerFactory", "twitter4j.NullLoggerFactory");
 
     // This will get a Twitter instance with config parameters from environment variables.

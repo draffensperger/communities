@@ -4,6 +4,7 @@ import com.google.api.services.datastore.DatastoreV1.*;
 import com.google.api.services.datastore.client.Datastore;
 
 import java.util.*;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static com.google.api.services.datastore.client.DatastoreHelper.makeFilter;
@@ -14,6 +15,8 @@ import static org.draff.objectdb.ValueHelper.toValue;
  * Created by dave on 1/1/16.
  */
 public class DatastoreDb implements ObjectDb {
+  private static Logger log = Logger.getLogger(DatastoreDb.class.getName());
+
   private final DatastoreUtil util;
   private final EntityMapper mapper;
 
@@ -44,12 +47,12 @@ public class DatastoreDb implements ObjectDb {
     }
     long start = System.nanoTime();
     List<Entity> entities = toEntities(models);
-    System.out.println("  converting " + models.size() + " objects to entities took " +
+    log.fine("  converting " + models.size() + " objects to entities took " +
         (System.nanoTime() - start)/1000000 + " ms");
 
     start = System.nanoTime();
     util.saveUpserts(entities);
-    System.out.println("  saving " + models.size() + " upserts took " +
+    log.fine("  saving " + models.size() + " upserts took " +
         (System.nanoTime() - start)/1000000 + " ms");
   }
 

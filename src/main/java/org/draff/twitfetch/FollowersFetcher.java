@@ -1,9 +1,12 @@
 package org.draff.twitfetch;
+import java.util.logging.*;
 
 /**
  * Created by dave on 1/13/16.
  */
 public class FollowersFetcher implements Runnable {
+  private static Logger log = Logger.getLogger(FollowersFetcher.class.getName());
+
   private FollowersBatchFetcher batchFetcher;
   private FollowersGoalUpdater goalUpdater;
   private RateLimit followersRateLimit;
@@ -21,7 +24,7 @@ public class FollowersFetcher implements Runnable {
         try {
           goalUpdater.retrieveFollowersGoalDetails();
         } catch(Exception e) {
-          e.printStackTrace();
+          log.log(Level.SEVERE, e.toString(), e);
         }
 
         while(followersRateLimit.hasRemaining()) {
@@ -29,7 +32,7 @@ public class FollowersFetcher implements Runnable {
         }
 
         long msToSleep = followersRateLimit.timeUntilNextReset();
-        System.out.println("Sleeping " + msToSleep + " for rate limit.");
+        log.info("Sleeping " + msToSleep + " for rate limit.");
         Thread.sleep(msToSleep);
       }
     } catch(InterruptedException e) {}

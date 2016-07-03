@@ -13,13 +13,15 @@ import twitter4j.api.FriendsFollowersResources;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
+import java.util.logging.Logger;
 import javax.inject.Inject;
 
 /**
  * Created by dave on 1/7/16.
  */
 public class FollowersBatchFetcher {
+  private static final Logger log = Logger.getLogger(FollowersBatchFetcher.class.getName());
+
   private ObjectDb db;
   private FriendsFollowersResources friendsFollowers;
 
@@ -42,6 +44,8 @@ public class FollowersBatchFetcher {
     FollowersTracker tracker = db.findOne(FollowersTracker.class, trackerConstraints);
     if (tracker != null) {
       new FollowersBatchFetch(tracker).fetch();
+    } else {
+      log.fine("No followers to fetch.");
     }
   }
 
@@ -57,7 +61,7 @@ public class FollowersBatchFetcher {
     }
 
     private long[] fetchFollowers() throws TwitterException {
-      System.out.println("Fetching followers batch for userid: " + tracker.id());
+      log.info("Fetching followers batch for userid: " + tracker.id());
       try {
         IDs followerIds = friendsFollowers.getFollowersIDs(tracker.id(), tracker.followersCursor());
         saveFollowers(followerIds.getIDs());
