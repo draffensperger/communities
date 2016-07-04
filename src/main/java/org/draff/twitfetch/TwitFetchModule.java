@@ -44,7 +44,13 @@ public class TwitFetchModule extends AbstractModule {
 
   @Provides
   Config provideConfig() {
-    String configFile = System.getProperty("config.file", "application");
+    String configFile = System.getProperty("config.file");
+    if (configFile == null) {
+      configFile = System.getenv("CONFIG_FILE");
+    }
+    if (configFile == null) {
+      configFile = "application";
+    }
     Config conf = ConfigFactory.load(configFile);
     return conf;
   }

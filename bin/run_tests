@@ -1,2 +1,4 @@
+#!/usr/bin/env bash
+
 $(gcloud beta emulators datastore env-init)
 mvn clean test -DargLine="-Dconfig.file=test"

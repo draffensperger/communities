@@ -1,2 +1,4 @@
+#!/usr/bin/env bash
+
 gcloud beta emulators datastore start --quiet --project=twitter-fetch --no-store-on-disk &
 sleep 1

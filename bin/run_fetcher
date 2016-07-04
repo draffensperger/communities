@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+java \
+  -cp target/classes:target/dependency/*:target/voices/lib/* \
+  -Djava.util.logging.config.file="src/main/resources/logging.properties" \
+  org.draff.twitfetch.Main 
