@@ -64,24 +64,33 @@ public class TwitFetchModule extends AbstractModule {
   }
 
   private static Datastore datastoreFromConf(Config conf) {
-    String privateKeyStr = conf.getString("datastore_private_key_pkcs12_base64");
-    PrivateKey key = keyFromString(privateKeyStr);
+    String keyStr = conf.getString("datastore_private_key_pkcs12_base64");
+    String serviceAccount = conf.getString("datastore_service_account");
+    Credential credential;
+    if (serviceAccount.equals("")) {
+      credential = null;
+    } else {
+      credential = credentialFromAccountAndKey(serviceAccount, keyStr);
+    }
 
+    DatastoreOptions options = new DatastoreOptions.Builder()
+        .host(conf.getString("datastore_host"))
+        .dataset(conf.getString("datastore_dataset"))
+        .credential(credential)
+        .build();
+    return DatastoreFactory.get().create(options);
+  }
+
+  private static Credential credentialFromAccountAndKey(String serviceAccount, String keyStr) {
+    PrivateKey key = keyFromString(keyStr);
     Credential credential = new GoogleCredential.Builder()
-        .setServiceAccountId(conf.getString("datastore_service_account"))
+        .setServiceAccountId(serviceAccount)
         .setServiceAccountPrivateKey(key)
         .setServiceAccountScopes(DatastoreOptions.SCOPES)
         .setTransport(newTrustedTransport())
         .setJsonFactory(new JacksonFactory())
         .build();
-
-      DatastoreOptions options = new DatastoreOptions.Builder()
-          .host(conf.getString("datastore_host"))
-          .dataset(conf.getString("datastore_dataset"))
-          .credential(credential)
-          .build();
-
-      return DatastoreFactory.get().create(options);
+    return credential;
   }
 
   private static NetHttpTransport newTrustedTransport() {
