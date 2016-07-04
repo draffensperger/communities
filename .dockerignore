@@ -1,0 +1,15 @@
+target/
+.settings/
+.project
+.classpath
+test-output/
+.idea/
+*.iml
+profiles.xml
+todo.txt
+*.p12
+*.log
+data
+*.csv
+*.class
+*.secrets.conf
