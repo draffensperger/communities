@@ -1,8 +1,13 @@
 package org.draff.twitfetch;
 
+import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.services.datastore.client.Datastore;
 import com.google.api.services.datastore.client.DatastoreFactory;
-import com.google.api.services.datastore.client.DatastoreHelper;
+import com.google.api.services.datastore.client.DatastoreOptions;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.ProvisionException;
@@ -17,26 +22,35 @@ import twitter4j.Twitter;
 import twitter4j.TwitterFactory;
 import twitter4j.conf.ConfigurationBuilder;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.security.GeneralSecurityException;
+import java.io.InputStream;
+import java.security.*;
+import java.security.cert.CertificateException;
+import java.util.Base64;
 
 /**
  * Created by dave on 2/6/16.
  */
 public class TwitFetchModule extends AbstractModule {
-  private Config conf = ConfigFactory.load();
-
   @Override
   protected void configure() {
   }
 
   @Provides
-  ObjectDb provideObjectDb() {
-    return DbWithMappers.create(datastoreFromEnv());
+  ObjectDb provideObjectDb(Config conf) {
+    return DbWithMappers.create(datastoreFromConf(conf));
   }
 
   @Provides
-  Twitter provideTwitter() {
+  Config provideConfig() {
+    String configFile = System.getProperty("config.file", "application");
+    Config conf = ConfigFactory.load(configFile);
+    return conf;
+  }
+
+  @Provides
+  Twitter provideTwitter(Config conf) {
     System.setProperty("twitter4j.loggerFactory", "twitter4j.NullLoggerFactory");
 
     // This will get a Twitter instance with config parameters from environment variables.
@@ -49,13 +63,47 @@ public class TwitFetchModule extends AbstractModule {
     return new TwitterFactory(cb.build()).getInstance();
   }
 
-  private static Datastore datastoreFromEnv() {
+  private static Datastore datastoreFromConf(Config conf) {
+    String privateKeyStr = conf.getString("datastore_private_key_pkcs12_base64");
+    PrivateKey key = keyFromString(privateKeyStr);
+
+    Credential credential = new GoogleCredential.Builder()
+        .setServiceAccountId(conf.getString("datastore_service_account"))
+        .setServiceAccountPrivateKey(key)
+        .setServiceAccountScopes(DatastoreOptions.SCOPES)
+        .setTransport(newTrustedTransport())
+        .setJsonFactory(new JacksonFactory())
+        .build();
+
+      DatastoreOptions options = new DatastoreOptions.Builder()
+          .host(conf.getString("datastore_host"))
+          .dataset(conf.getString("datastore_dataset"))
+          .credential(credential)
+          .build();
+
+      return DatastoreFactory.get().create(options);
+  }
+
+  private static NetHttpTransport newTrustedTransport() {
     try {
-      return DatastoreFactory.get().create(DatastoreHelper.getOptionsFromEnv().build());
-    } catch (GeneralSecurityException e) {
-      throw new ProvisionException("Security issue connecting to datastore", e);
-    } catch (IOException e) {
-      throw new ProvisionException("Unable to connect to datastore", e);
+      return GoogleNetHttpTransport.newTrustedTransport();
+    } catch(GeneralSecurityException|IOException e) {
+      throw new ProvisionException("Error provisioning datastore", e);
+    }
+  }
+
+  private static PrivateKey keyFromString(String keyStr) {
+    try {
+      byte[] keyPKCS12Bytes = Base64.getDecoder().decode(keyStr);
+      InputStream stream = new ByteArrayInputStream(keyPKCS12Bytes);
+
+      KeyStore keystore = KeyStore.getInstance("PKCS12");
+      char[] password = "notasecret".toCharArray();
+      keystore.load(stream, password);
+      return (PrivateKey) keystore.getKey("privatekey", password);
+    } catch (NoSuchAlgorithmException|KeyStoreException|IOException|CertificateException|
+        UnrecoverableKeyException e) {
+      throw new ProvisionException("Cannot load datastore private key", e);
     }
   }
 }

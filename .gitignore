@@ -12,3 +12,4 @@ todo.txt
 data
 *.csv
 *.class
+*.secrets.conf
