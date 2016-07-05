@@ -1,20 +1,31 @@
 package org.draff.analysis;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
 import org.draff.model.FollowersGoal;
 import org.draff.objectdb.ObjectDb;
+import org.draff.twitfetch.TwitFetchModule;
 
 /**
  * Created by dave on 2/6/16.
  */
 public class Main {
   public static void main(String[] args) {
-    ObjectDb db = null;
+    Injector injector = Guice.createInjector(new TwitFetchModule());
+    ObjectDb db = injector.getInstance(ObjectDb.class);
 
     String command = "";
     if (args.length > 0) {
       command = args[0];
     }
-    if (command.equals("sum")) {
+    if (command.equals("retrieve-followers")) {
+      long id = Long.valueOf(args[1]);
+      new FollowersRequester(db).requestFollowers(id, false);
+    } else if (command.equals("retrieve-followers-2nd-level")) {
+      long id = Long.valueOf(args[1]);
+      new FollowersRequester(db).requestFollowers(id, true);
+    } else if (command.equals("sum")) {
       FollowersCounter counter = new FollowersCounter(db);
       FollowersCounter.Aggregates aggregates = counter.calcFollowerAggregates();
       System.out.println("Total followers: " + aggregates.followersTotal());
