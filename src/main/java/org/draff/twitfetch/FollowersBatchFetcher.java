@@ -102,6 +102,7 @@ public class FollowersBatchFetcher {
         followers.add(Follower.create(tracker.id(), followerId));
       }
       db.saveAll(followers);
+      log.fine("Saved " + followerIds.length + " followers");
     }
 
     private void updateFollowersCursor(IDs followerIds) {

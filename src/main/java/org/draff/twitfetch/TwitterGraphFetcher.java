@@ -53,7 +53,6 @@ public class TwitterGraphFetcher {
     Thread userDetailFetcherThread = new Thread(userDetailFetcher);
 
     log.info("Starting Twitter graph fetch ...");
-    log.fine("hello fine!");
 
     followersFetcherThread.start();
     userDetailFetcherThread.start();

@@ -44,8 +44,7 @@ public class FollowersFetcher implements Runnable {
         followersRateLimit.decrement();
         batchFetcher.fetchFollowersBatch();
       } catch(Exception e) {
-        e.printStackTrace();
-        throw new RuntimeException(e);
+        log.log(Level.SEVERE, "Error fetching followers: " + e.toString(), e);
       }
     }
   }

@@ -13,3 +13,4 @@ data
 *.csv
 *.class
 *.secrets.conf
+*.secrets.env
