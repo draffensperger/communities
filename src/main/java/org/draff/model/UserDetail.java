@@ -5,7 +5,6 @@ import com.google.auto.value.AutoValue;
 import org.draff.objectdb.Model;
 
 import java.time.Instant;
-import java.util.Date;
 
 import javax.annotation.Nullable;
 
@@ -17,7 +16,7 @@ public abstract class UserDetail implements Model {
   public abstract long id();
   public abstract long retrievedAt();
   public abstract String screenName();
-  public abstract String screenNameLower();
+  @Nullable public abstract String screenNameLower();
   @Nullable public abstract String location();
   @Nullable public abstract String description();
   @Nullable public abstract String url();

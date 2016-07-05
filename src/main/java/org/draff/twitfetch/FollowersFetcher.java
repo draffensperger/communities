@@ -32,7 +32,7 @@ public class FollowersFetcher implements Runnable {
         }
 
         long msToSleep = followersRateLimit.timeUntilNextReset();
-        log.info("Sleeping " + msToSleep + " for rate limit.");
+        log.info("Sleeping " + Math.round((double)msToSleep / 60000.0) + " minutes for rate limit.");
         Thread.sleep(msToSleep);
       }
     } catch(InterruptedException e) {}

@@ -6,16 +6,22 @@ import com.google.api.services.datastore.DatastoreV1.Value;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import static com.google.api.services.datastore.client.DatastoreHelper.*;
+import static com.google.api.services.datastore.client.DatastoreHelper.getPropertyMap;
+import static com.google.api.services.datastore.client.DatastoreHelper.makeKey;
+import static com.google.api.services.datastore.client.DatastoreHelper.makeProperty;
 import static org.draff.objectdb.EntityMapperHelper.*;
-import static org.draff.objectdb.ValueHelper.*;
+import static org.draff.objectdb.ValueHelper.fromValue;
+import static org.draff.objectdb.ValueHelper.toValue;
 
 /**
  * Created by dave on 1/26/16.
  */
 public class BuilderEntityMapper implements EntityMapper {
+  private static final Logger log = Logger.getLogger(BuilderEntityMapper.class.getName());
+
   private final Class modelClass;
   private final Method buildMethod;
   private final Method builderMethod;
@@ -62,11 +68,21 @@ public class BuilderEntityMapper implements EntityMapper {
   @Override
   public <T extends Model> T fromEntity(Entity entity, Class<T> clazz) {
     Map<String, Value> entityProperties = getPropertyMap(entity);
-    Object builder = invoke(builderMethod, null);
-    builderPropertyMethods.forEach(m ->
-        invoke(m, builder, fromValue(entityProperties.get(m.getName()))));
-    invoke(builderIdMethod, builder, entityId(entity));
-    return clazz.cast(invoke(buildMethod, builder));
+    try {
+      Object builder = invoke(builderMethod, null);
+      builderPropertyMethods.forEach(m -> {
+        if (entityProperties.containsKey(m.getName())) {
+          invoke(m, builder, fromValue(entityProperties.get(m.getName())));
+        }
+      });
+      invoke(builderIdMethod, builder, entityId(entity));
+      return clazz.cast(invoke(buildMethod, builder));
+    } catch(RuntimeException e) {
+      log.severe("Exception building entity (" + entity.getKey().toString() +
+          ") with properties: " + entityProperties.toString());
+      log.severe("This may be because the entity does not have the expected properties.");
+      throw(e);
+    }
   }
 
   @Override
