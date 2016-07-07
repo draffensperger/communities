@@ -12,31 +12,54 @@ Datastore.
 
 ## Deploying
 
-cat key_base64.txt | base64 -D > key2.p12
-keytool -list -keystore key2.p12 -storetype PKCS12 
-keytool -list -keystore TwitterCommunities-207475cbab9e.p12 -storetype PKCS12 
+In order to deploy this you will need to convert your key to Base64 format.
+You can do that using a command like this: `cat YourKey.p12 | base64`.
 
+This is built as a docker container https://hub.docker.com/r/draffensperger/twitter-fetch/ and a simple way to deploy this is to use any hosting service that will run Docker containers. For instance, you can use Digital Ocean's 1-click docker image.
 
-http://localhost:8158/_ah/admin
+Here's an example of the commands you would need to do the deployment assuming
+you have a server that has docker installed. The first thing to do is to set
+up a `prod.secrets.env` file with the configuration needed.
 
-## Setting up a local development environment
+Then you can run the following to get the app running using docker:
+
+```
+DROPLET_IP={your droplet ip address}
+scp prod.secrets.env root@$DROPLET_IP:/root
+
+ssh root@"$DROPLET_IP"
+docker pull draffensperger/twitter-fetch
+docker run --env-file prod.secrets.env draffensperger/twitter-fetch &
+```
+
+## Developing and testing locally
+
+You can run run a local datastore emulator. To access the admin interface you
+can go to `http://localhost:8158/_ah/admin`.
 
 CONFIG_FILE=development.secrets bin/run_fetcher
 CONFIG_FILE=development.secrets bin/run_command retrieve-followers 196399788
 
+bin/run_fetcher -Dconfig.file="development.secrets"
+
+## Setting up a local development environment
 
 ## Community Analysis
 
-https://en.wikipedia.org/wiki/Community_structure#Algorithms_for_finding_communities
+The eventual goal is to use this fetched Twitter data for community analysis. 
 
+https://en.wikipedia.org/wiki/Community_structure#Algorithms_for_finding_communities
 
 ## Potential improvements
 
-issues to deal with:
+These things could be improved in the app
+- debug the rate limiting stuff: just make it log lots of stuff
 - tests not running
 - get this deployed already
 - dependencies not pulling in
 - upgrade to v1beta3 api
 - make docker build process more efficient
 - improve code style as per the Codacy feedback
-
+- datastore is about 10x as expensive as just cloud files
+- use ExecutorService instead of simple threads
+- use ScheduledExecutorService and make it clean to do a shutdown
