@@ -38,6 +38,6 @@ public class FollowersStorer {
   }
 
   private String base64EncodedForPath(byte[] bytes) {
-    return Base64.encode(bytes).replace('/', '-').replace('+', '_');
+    return Base64.encode(bytes).replace('/', '-').replace('+', '_').replace("=", "");
   }
 }

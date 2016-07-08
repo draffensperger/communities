@@ -40,8 +40,6 @@ can go to `http://localhost:8158/_ah/admin`.
 CONFIG_FILE=development.secrets bin/run_fetcher
 CONFIG_FILE=development.secrets bin/run_command retrieve-followers 196399788
 
-bin/run_fetcher -Dconfig.file="development.secrets"
-
 ## Setting up a local development environment
 
 ## Community Analysis
