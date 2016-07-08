@@ -8,9 +8,12 @@ import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.api.services.datastore.client.Datastore;
 import com.google.api.services.datastore.client.DatastoreFactory;
 import com.google.api.services.datastore.client.DatastoreOptions;
+import com.google.api.services.storage.Storage;
+import com.google.api.services.storage.StorageScopes;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.ProvisionException;
+import com.google.inject.name.Names;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -27,36 +30,31 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.*;
 import java.security.cert.CertificateException;
-import java.util.Base64;
+import java.util.*;
 
 /**
  * Created by dave on 2/6/16.
  */
 public class TwitFetchModule extends AbstractModule {
+  private Config conf;
+
   @Override
   protected void configure() {
-  }
+    this.conf = loadConfig();
 
-  @Provides
-  ObjectDb provideObjectDb(Config conf) {
-    return DbWithMappers.create(datastoreFromConf(conf));
-  }
-
-  @Provides
-  Config provideConfig() {
-    String configFile = System.getProperty("config.file");
-    if (configFile == null) {
-      configFile = System.getenv("CONFIG_FILE");
+    List<String> confNames = Arrays.asList("storage_bucket");
+    for (String confName : confNames) {
+      bindConstant().annotatedWith(Names.named(confName)).to(conf.getString(confName));
     }
-    if (configFile == null) {
-      configFile = "application";
-    }
-    Config conf = ConfigFactory.load(configFile);
-    return conf;
   }
 
   @Provides
-  Twitter provideTwitter(Config conf) {
+  ObjectDb provideObjectDb(Datastore datastore) {
+    return DbWithMappers.create(datastore);
+  }
+
+  @Provides
+  Twitter provideTwitter() {
     System.setProperty("twitter4j.loggerFactory", "twitter4j.NullLoggerFactory");
 
     // This will get a Twitter instance with config parameters from environment variables.
@@ -69,16 +67,41 @@ public class TwitFetchModule extends AbstractModule {
     return new TwitterFactory(cb.build()).getInstance();
   }
 
-  private static Datastore datastoreFromConf(Config conf) {
-    String keyStr = conf.getString("datastore_private_key_pkcs12_base64");
-    String serviceAccount = conf.getString("datastore_service_account");
-    Credential credential;
-    if (serviceAccount.equals("")) {
-      credential = null;
-    } else {
-      credential = credentialFromAccountAndKey(serviceAccount, keyStr);
+  private Config loadConfig() {
+    String configFile = System.getProperty("config.file");
+    if (configFile == null) {
+      configFile = System.getenv("CONFIG_FILE");
     }
+    if (configFile == null) {
+      configFile = "application";
+    }
+    Config conf = ConfigFactory.load(configFile);
+    return conf;
+  }
 
+  @Provides
+  Credential provideCredential(NetHttpTransport transport) {
+    String serviceAccount = conf.getString("datastore_service_account");
+    if (serviceAccount.equals("")) {
+      return null;
+    }
+    String keyStr = conf.getString("datastore_private_key_pkcs12_base64");
+    PrivateKey key = keyFromString(keyStr);
+    Collection<String> scopes = new ArrayList<>();
+    scopes.addAll(DatastoreOptions.SCOPES);
+    scopes.addAll(StorageScopes.all());
+    Credential credential = new GoogleCredential.Builder()
+        .setServiceAccountId(serviceAccount)
+        .setServiceAccountPrivateKey(key)
+        .setServiceAccountScopes(scopes)
+        .setTransport(transport)
+        .setJsonFactory(new JacksonFactory())
+        .build();
+    return credential;
+  }
+
+  @Provides
+  Datastore provideDatastore(Credential credential) {
     DatastoreOptions options = new DatastoreOptions.Builder()
         .host(conf.getString("datastore_host"))
         .dataset(conf.getString("datastore_dataset"))
@@ -87,19 +110,15 @@ public class TwitFetchModule extends AbstractModule {
     return DatastoreFactory.get().create(options);
   }
 
-  private static Credential credentialFromAccountAndKey(String serviceAccount, String keyStr) {
-    PrivateKey key = keyFromString(keyStr);
-    Credential credential = new GoogleCredential.Builder()
-        .setServiceAccountId(serviceAccount)
-        .setServiceAccountPrivateKey(key)
-        .setServiceAccountScopes(DatastoreOptions.SCOPES)
-        .setTransport(newTrustedTransport())
-        .setJsonFactory(new JacksonFactory())
-        .build();
-    return credential;
+  @Provides
+  Storage provideStorage(Credential credential, NetHttpTransport transport) {
+     return new Storage.Builder(transport, new JacksonFactory(), credential)
+      .setApplicationName(conf.getString("storage_app_name"))
+      .build();
   }
 
-  private static NetHttpTransport newTrustedTransport() {
+  @Provides
+  NetHttpTransport provideNetHttpTransport() {
     try {
       return GoogleNetHttpTransport.newTrustedTransport();
     } catch(GeneralSecurityException|IOException e) {

@@ -3,17 +3,18 @@ package org.draff.twitfetch;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Longs;
 
-import org.draff.model.*;
+import org.draff.model.FollowersTracker;
+import org.draff.model.UserDetail;
+import org.draff.model.UserDetailRequestById;
 import org.draff.objectdb.ObjectDb;
 
 import twitter4j.IDs;
 import twitter4j.TwitterException;
 import twitter4j.api.FriendsFollowersResources;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+
 import javax.inject.Inject;
 
 /**
@@ -24,15 +25,18 @@ public class FollowersBatchFetcher {
 
   private ObjectDb db;
   private FriendsFollowersResources friendsFollowers;
+  private FollowersStorer followersStorer;
 
   private final static Map<String, Object> NEEDS_FOLLOWERS =
       new ImmutableMap.Builder<String, Object>().put("shouldFetchFollowers", true)
           .put("followersFetched", false).build();
 
   @Inject
-  public FollowersBatchFetcher(ObjectDb db, FriendsFollowersResources friendsFollowers) {
+  public FollowersBatchFetcher(ObjectDb db, FriendsFollowersResources friendsFollowers,
+                               FollowersStorer followersStorer) {
     this.db = db;
     this.friendsFollowers = friendsFollowers;
+    this.followersStorer = followersStorer;
   }
 
   public void fetchFollowersBatch() throws TwitterException {
@@ -97,11 +101,7 @@ public class FollowersBatchFetcher {
     }
 
     private void saveFollowers(long[] followerIds) {
-      List<Follower> followers = new ArrayList<>(followerIds.length);
-      for (long followerId : followerIds) {
-        followers.add(Follower.create(tracker.id(), followerId));
-      }
-      db.saveAll(followers);
+      followersStorer.storeFollowers(tracker.id(), "followers", followerIds);
       log.fine("Saved " + followerIds.length + " followers");
     }
 

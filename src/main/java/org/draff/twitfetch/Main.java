@@ -9,6 +9,9 @@ import com.google.inject.Injector;
 public class Main {
   public static void main(String[] args) {
     Injector injector = Guice.createInjector(new TwitFetchModule());
+    TextStorer storer = injector.getInstance(TextStorer.class);
+    storer.store("test.txt", "hello world!");
+
     TwitterGraphFetcher fetcher = injector.getInstance(TwitterGraphFetcher.class);
     fetcher.runFetch();
   }

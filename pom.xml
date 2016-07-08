@@ -116,7 +116,7 @@
         <dependency>
           <groupId>com.google.apis</groupId>
           <artifactId>google-api-services-storage</artifactId>
-          <version>v1beta1-rev21-1.14.1-beta</version>
+          <version>v1-rev78-1.22.0</version>
         </dependency>
       </dependencies>
     </project>

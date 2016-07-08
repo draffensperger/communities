@@ -19,11 +19,13 @@ public class TwitterGraphFetcher {
 
   private ObjectDb objectDb;
   private Twitter twitter;
+  private FollowersStorer followersStorer;
 
   @Inject
-  public TwitterGraphFetcher(ObjectDb objectDb, Twitter twitter) {
+  public TwitterGraphFetcher(ObjectDb objectDb, Twitter twitter, FollowersStorer followersStorer) {
     this.objectDb = objectDb;
     this.twitter = twitter;
+    this.followersStorer = followersStorer;
   }
 
   public void runFetch() {
@@ -38,7 +40,7 @@ public class TwitterGraphFetcher {
     RateLimit followersRateLimit = new RateLimit(rateLimitStatusMap.get("/followers/ids"));
 
     FollowersBatchFetcher followersBatchFetcher =
-        new FollowersBatchFetcher(objectDb, twitter.friendsFollowers());
+        new FollowersBatchFetcher(objectDb, twitter.friendsFollowers(), followersStorer);
     FollowersGoalUpdater followersGoalUpdater =
         new FollowersGoalUpdater(objectDb, twitter.users());
     FollowersFetcher followersFetcher =

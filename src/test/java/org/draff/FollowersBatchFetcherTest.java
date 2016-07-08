@@ -5,6 +5,7 @@ import org.draff.model.*;
 import org.draff.objectdb.DatastoreDb;
 import org.draff.support.TestDatastore;
 import org.draff.twitfetch.FollowersBatchFetcher;
+import org.draff.twitfetch.FollowersStorer;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -37,26 +38,14 @@ public class FollowersBatchFetcherTest {
     db.save(tracker);
     waitForEventualSave(FollowersTracker.class);
 
-    new FollowersBatchFetcher(db, mockFriendsFollowers()).fetchFollowersBatch();
-
-    waitForEventualSave(Follower.class);
+    FollowersStorer mockStorer = mock(FollowersStorer.class);
+    new FollowersBatchFetcher(db, mockFriendsFollowers(), mockStorer).fetchFollowersBatch();
+    verify(mockStorer, times(1)).storeFollowers(1L, "followers", new long[] {2L, 3L});
 
     FollowersTracker updatedTracker = db.findById(FollowersTracker.class, 1L);
     assertEquals(true, updatedTracker.shouldFetchFollowers());
     assertEquals(false, updatedTracker.followersFetched());
     assertEquals(1001L, updatedTracker.followersCursor());
-
-    List<Follower> followers = db.findChildren(tracker, Follower.class, 3, Long.MIN_VALUE);
-    followers.sort((f1, f2) -> Long.compare(f1.id(), f2.id()));
-    assertEquals(2, followers.size());
-
-    Follower follower0 = followers.get(0);
-    assertEquals(1L, follower0.userId());
-    assertEquals(2L, follower0.id());
-
-    Follower follower1 = followers.get(1);
-    assertEquals(1L, follower1.userId());
-    assertEquals(3L, follower1.id());
   }
 
   @Test
@@ -72,11 +61,9 @@ public class FollowersBatchFetcherTest {
     // Add existing request that is marked as retrieved
     db.save(UserDetailRequestById.builder().id(2L).detailRetrieved(true).build());
 
-    new FollowersBatchFetcher(db, mockFriendsFollowers()).fetchFollowersBatch();
-    waitForEventualSave(Follower.class);
-
-    List<Follower> followers = db.find(Follower.class, 3);
-    assertEquals(2, followers.size());
+    FollowersStorer mockStorer = mock(FollowersStorer.class);
+    new FollowersBatchFetcher(db, mockFriendsFollowers(), mockStorer).fetchFollowersBatch();
+    verify(mockStorer, times(1)).storeFollowers(1L, "followers", new long[] {2L, 3L});
 
     List<UserDetailRequestById> detailRequests = db.find(UserDetailRequestById.class, 3);
     assertEquals(2, detailRequests.size());
