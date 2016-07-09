@@ -1,7 +1,9 @@
 package org.draff;
 
 import org.draff.mapper.DbWithMappers;
-import org.draff.model.*;
+import org.draff.model.FollowersTracker;
+import org.draff.model.FriendsTracker;
+import org.draff.model.UserDetailRequestById;
 import org.draff.objectdb.DatastoreDb;
 import org.draff.support.TestDatastore;
 import org.draff.twitfetch.FollowersBatchFetcher;
@@ -97,6 +99,16 @@ public class FollowersBatchFetcherTest {
     assertTrue(tracker3.shouldFetchFollowers());
     // check that it defaults level to retrieval fields to false
     assertFalse(tracker3.shouldFetchLevel2Followers());
+
+
+    // expect that it creates the friends trackers too
+    List<FriendsTracker> friendsTrackers = db.find(FriendsTracker.class, 4);
+    assertEquals(2, friendsTrackers.size());
+    friendsTrackers.sort((t1, t2) -> Long.compare(t1.id(), t2.id()));
+    assertEquals(2L, friendsTrackers.get(0).id());
+    assertEquals(3L, friendsTrackers.get(1).id());
+    assertTrue(friendsTrackers.get(0).shouldFetchFriends());
+    assertFalse(friendsTrackers.get(0).friendsFetched());
   }
 
   private FriendsFollowersResources mockFriendsFollowers() throws TwitterException {

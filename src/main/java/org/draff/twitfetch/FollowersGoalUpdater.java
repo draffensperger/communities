@@ -63,6 +63,13 @@ public class FollowersGoalUpdater {
         .creator(id -> updatedFollowersTracker(FollowersTracker.builder().id((Long)id), depthGoal))
         .transformer(existing -> updatedFollowersTracker(existing.toBuilder(), depthGoal))
         .now();
+
+    // create friends tracker as well
+    db.createOrTransform(FriendsTracker.class)
+        .namesOrIds(Arrays.asList(userId))
+        .creator(id -> FriendsTracker.builder().id((Long)id).shouldFetchFriends(true).build())
+        .transformer(existing -> existing.withShouldFetchFriends(true))
+        .now();
   }
 
   private FollowersTracker updatedFollowersTracker(FollowersTracker.Builder builder, long depthGoal) {

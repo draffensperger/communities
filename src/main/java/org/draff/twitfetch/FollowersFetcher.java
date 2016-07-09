@@ -32,7 +32,7 @@ public class FollowersFetcher implements Runnable {
         }
 
         long msToSleep = followersRateLimit.timeUntilNextReset();
-        log.info("Sleeping " + Math.round((double)msToSleep / 60000.0) + " minutes for rate limit.");
+        log.info("Sleeping " + Math.round((double)msToSleep / 60000.0) + " minutes for followers rate limit.");
         Thread.sleep(msToSleep);
       }
     } catch(InterruptedException e) {}
@@ -42,7 +42,7 @@ public class FollowersFetcher implements Runnable {
     if (followersRateLimit.hasRemaining()) {
       try {
         followersRateLimit.decrement();
-        batchFetcher.fetchFollowersBatch();
+        //batchFetcher.fetchFollowersBatch();
       } catch(Exception e) {
         log.log(Level.SEVERE, "Error fetching followers: " + e.toString(), e);
       }

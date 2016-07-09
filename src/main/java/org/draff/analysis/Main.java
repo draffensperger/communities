@@ -25,6 +25,9 @@ public class Main {
     } else if (command.equals("retrieve-followers-2nd-level")) {
       long id = Long.valueOf(args[1]);
       new FollowersRequester(db).requestFollowers(id, true);
+    } else if (command.equals("retrieve-friends")) {
+      long id = Long.valueOf(args[1]);
+      new FriendsRequester(db).requestFriends(id);
     } else if (command.equals("sum")) {
       FollowersCounter counter = new FollowersCounter(db);
       FollowersCounter.Aggregates aggregates = counter.calcFollowerAggregates();

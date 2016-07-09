@@ -47,31 +47,43 @@ public class TwitterGraphFetcher {
         new FollowersFetcher(followersBatchFetcher, followersGoalUpdater,
             followersRateLimit);
 
+
+    RateLimit friendsRateLimit = new RateLimit(rateLimitStatusMap.get("/friends/ids"));
+    FriendsBatchFetcher friendsBatchFetcher =
+        new FriendsBatchFetcher(objectDb, twitter.friendsFollowers(), followersStorer);
+    FriendsFetcher friendsFetcher =
+        new FriendsFetcher(friendsBatchFetcher, friendsRateLimit);
+
     UserDetailBatchFetcher userDetailBatchFetcher =
         new UserDetailBatchFetcher(objectDb, twitter.users());
     UserDetailFetcher userDetailFetcher = new UserDetailFetcher(userDetailBatchFetcher);
 
     Thread followersFetcherThread = new Thread(followersFetcher);
     Thread userDetailFetcherThread = new Thread(userDetailFetcher);
+    Thread friendsFetcherThread = new Thread(friendsFetcher);
 
     log.info("Starting Twitter graph fetch ...");
 
     followersFetcherThread.start();
     userDetailFetcherThread.start();
+    friendsFetcherThread.start();
 
-    addShutdownHook(followersFetcherThread, userDetailFetcherThread);
+    addShutdownHook(followersFetcherThread, userDetailFetcherThread, friendsFetcherThread);
 
     try {
       followersFetcherThread.join();
       userDetailFetcherThread.join();
+      friendsFetcherThread.join();
     } catch(InterruptedException e) {}
   }
 
-  private void addShutdownHook(Thread followersFetcherThread, Thread userDetailFetcherThread) {
+  private void addShutdownHook(Thread followersFetcherThread, Thread userDetailFetcherThread,
+                               Thread friendsFetcherThread) {
     Runtime.getRuntime().addShutdownHook(new Thread() {
       public void run() {
         followersFetcherThread.interrupt();
         userDetailFetcherThread.interrupt();
+        friendsFetcherThread.interrupt();
       }
     });
   }

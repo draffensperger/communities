@@ -3,9 +3,7 @@ package org.draff.twitfetch;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Longs;
 
-import org.draff.model.FollowersTracker;
-import org.draff.model.UserDetail;
-import org.draff.model.UserDetailRequestById;
+import org.draff.model.*;
 import org.draff.objectdb.ObjectDb;
 
 import twitter4j.IDs;
@@ -120,6 +118,13 @@ public class FollowersBatchFetcher {
             .creator(id -> FollowersTracker.builder().id((Long)id).shouldFetchFollowers(true).build())
             .transformer(level2Tracker -> level2Tracker.withShouldFetchFollowers(true))
             .now();
+
+        db.createOrTransform(FriendsTracker.class)
+            .namesOrIds(Longs.asList(friendOrFollowerIds))
+            .creator(id -> FriendsTracker.builder().id((Long)id).shouldFetchFriends(true).build())
+            .transformer(level2Tracker -> level2Tracker.withShouldFetchFriends(true))
+            .now();
+
         addUserDetailRequests(friendOrFollowerIds);
       }
     }

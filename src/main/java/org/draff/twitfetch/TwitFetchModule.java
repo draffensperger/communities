@@ -32,6 +32,8 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.*;
 
+import javax.annotation.Nullable;
+
 /**
  * Created by dave on 2/6/16.
  */
@@ -101,9 +103,15 @@ public class TwitFetchModule extends AbstractModule {
   }
 
   @Provides
-  Datastore provideDatastore(Credential credential) {
+  Datastore provideDatastore(@Nullable Credential credential) {
+    String host = conf.getString("datastore_host");
+    if (host.matches("localhost\\:")) {
+      // For localhost, always use null credential
+      credential = null;
+    }
+
     DatastoreOptions options = new DatastoreOptions.Builder()
-        .host(conf.getString("datastore_host"))
+        .host(host)
         .dataset(conf.getString("datastore_dataset"))
         .credential(credential)
         .build();
