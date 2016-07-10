@@ -1,59 +1,62 @@
 package org.draff.twitfetch;
 
 import twitter4j.RateLimitStatus;
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
+
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created by dave on 1/18/16.
  */
 public class RateLimit {
-  // Twitter rate limits reset every 15 minutes
-  private static final long PERIOD_LENGTH_MS = 15 * 60 * 1000;
+  private static final Logger log = Logger.getLogger(TwitterGraphFetcher.class.getName());
+
   private static final long RATE_LIMIT_MARGIN = 5 * 1000;
 
-  private int limitPerPeriod;
   private int remaining;
-  private long initialResetTime;
-  private long lastPerformedTime;
+  private long timeOfNextReset;
+  private Twitter twitter;
+  private String rateLimitId;
 
-  public RateLimit(RateLimitStatus initialStatus) {
-    this.limitPerPeriod = initialStatus.getLimit();
-    this.remaining = initialStatus.getRemaining();
-    this.lastPerformedTime = System.currentTimeMillis();
-
-    long msSinceLastReset = PERIOD_LENGTH_MS - initialStatus.getSecondsUntilReset() * 1000L;
-    this.initialResetTime = System.currentTimeMillis() - msSinceLastReset + RATE_LIMIT_MARGIN;
+  public RateLimit(Twitter twitter, String rateLimitId) {
+    this.twitter = twitter;
+    this.rateLimitId = rateLimitId;
   }
 
   public boolean hasRemaining() {
-    checkForLimitReset();
+    if (remaining == 0) {
+      retrieveRateLimitInfo();
+    }
+    log.finest("Remaining for " + rateLimitId + " " + remaining);
     return remaining > 0;
   }
 
   public void decrement() {
     if (hasRemaining()) {
-      lastPerformedTime = System.currentTimeMillis();
       remaining--;
+      log.finest("Remaining for " + rateLimitId + " decremented to " + remaining);
     } else {
       throw new IllegalStateException("Cannot have performed task as rate limit would be hit");
     }
   }
 
   public long timeUntilNextReset() {
-    return PERIOD_LENGTH_MS - timeSinceLastReset(System.currentTimeMillis());
+    return Math.max(0L, timeOfNextReset - System.currentTimeMillis()) + RATE_LIMIT_MARGIN;
   }
 
-  private void checkForLimitReset() {
-    if (lastPerformedTime < lastResetTime()) {
-      remaining = limitPerPeriod;
+  private void retrieveRateLimitInfo() {
+    try {
+      Map<String, RateLimitStatus> statusMap = twitter.getRateLimitStatus();
+      RateLimitStatus status = statusMap.get(rateLimitId);
+      this.remaining = status.getRemaining();
+      this.timeOfNextReset = System.currentTimeMillis() + status.getSecondsUntilReset() * 1000L;
+      log.finest("Remaining reset to " + remaining);
+    } catch(TwitterException e) {
+      log.log(Level.SEVERE, "Error getting rate limit", e);
+      return;
     }
-  }
-
-  private long lastResetTime() {
-    long currentTime = System.currentTimeMillis();
-    return currentTime - timeSinceLastReset(currentTime);
-  }
-
-  private long timeSinceLastReset(long currentTime) {
-    return (currentTime - initialResetTime) % PERIOD_LENGTH_MS;
   }
 }

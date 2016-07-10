@@ -39,13 +39,11 @@ public class FollowersFetcher implements Runnable {
   }
 
   private void fetchFollowersIfHasRemaining() {
-    if (followersRateLimit.hasRemaining()) {
-      try {
-        followersRateLimit.decrement();
-        batchFetcher.fetchFollowersBatch();
-      } catch(Exception e) {
-        log.log(Level.SEVERE, "Error fetching followers: " + e.toString(), e);
-      }
+    try {
+      batchFetcher.fetchFollowersBatch();
+      followersRateLimit.decrement();
+    } catch(Exception e) {
+      log.log(Level.SEVERE, "Error fetching followers: " + e.toString(), e);
     }
   }
 }

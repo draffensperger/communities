@@ -2,11 +2,8 @@ package org.draff.twitfetch;
 
 import org.draff.objectdb.ObjectDb;
 
-import twitter4j.RateLimitStatus;
 import twitter4j.Twitter;
-import twitter4j.TwitterException;
 
-import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.inject.Inject;
@@ -29,15 +26,7 @@ public class TwitterGraphFetcher {
   }
 
   public void runFetch() {
-    Map<String, RateLimitStatus> rateLimitStatusMap;
-    try {
-      rateLimitStatusMap = twitter.getRateLimitStatus();
-    } catch(TwitterException e) {
-      e.printStackTrace();
-      return;
-    }
-
-    RateLimit followersRateLimit = new RateLimit(rateLimitStatusMap.get("/followers/ids"));
+    RateLimit followersRateLimit = new RateLimit(twitter, "/followers/ids");
 
     FollowersBatchFetcher followersBatchFetcher =
         new FollowersBatchFetcher(objectDb, twitter.friendsFollowers(), followersStorer);
@@ -48,7 +37,7 @@ public class TwitterGraphFetcher {
             followersRateLimit);
 
 
-    RateLimit friendsRateLimit = new RateLimit(rateLimitStatusMap.get("/friends/ids"));
+    RateLimit friendsRateLimit = new RateLimit(twitter, "/friends/ids");
     FriendsBatchFetcher friendsBatchFetcher =
         new FriendsBatchFetcher(objectDb, twitter.friendsFollowers(), followersStorer);
     FriendsFetcher friendsFetcher =

@@ -30,13 +30,11 @@ public class FriendsFetcher implements Runnable {
   }
 
   private void fetchFriendsIfHasRemaining() {
-    if (friendsRateLimit.hasRemaining()) {
-      try {
-        friendsRateLimit.decrement();
-        batchFetcher.fetchFriendsBatch();
-      } catch(Exception e) {
-        log.log(Level.SEVERE, "Error fetching friends: " + e.toString(), e);
-      }
+    try {
+      friendsRateLimit.decrement();
+      batchFetcher.fetchFriendsBatch();
+    } catch(Exception e) {
+      log.log(Level.SEVERE, "Error fetching friends: " + e.toString(), e);
     }
   }
 }
