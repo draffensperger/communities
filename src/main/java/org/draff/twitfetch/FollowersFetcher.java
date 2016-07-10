@@ -40,8 +40,8 @@ public class FollowersFetcher implements Runnable {
 
   private void fetchFollowersIfHasRemaining() {
     try {
-      batchFetcher.fetchFollowersBatch();
       followersRateLimit.decrement();
+      batchFetcher.fetchFollowersBatch();
     } catch(Exception e) {
       log.log(Level.SEVERE, "Error fetching followers: " + e.toString(), e);
     }
