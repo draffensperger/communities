@@ -3,7 +3,6 @@ package org.draff.twitfetch;
 import com.google.common.collect.ImmutableMap;
 
 import org.draff.model.FriendsTracker;
-import org.draff.model.UserDetail;
 import org.draff.objectdb.ObjectDb;
 
 import twitter4j.IDs;
@@ -70,31 +69,12 @@ public class FriendsBatchFetcher {
         updateFriendsCursor(followerIds);
         return followerIds.getIDs();
       } catch(TwitterException exception) {
-        handleOrRethrow(exception);
-        return new long[0];
-      }
-    }
-
-    private void handleOrRethrow(TwitterException exception)
-        throws TwitterException {
-      if (exception.getStatusCode() == 401) {
-        UserDetail userDetail = db.findById(UserDetail.class, tracker.id());
-        if (userDetail == null) {
-          // In this case it's most likely that the user is protected, but perhaps the UserDetail
-          // record for it has not been retrieved yet. In this case, rather than making the explicit
-          // claim that the Friends have been retrieved, just set that we won't retrieve them.
+        if (exception.getStatusCode() == 401) {
+          // Typically a 401 error at this point indicates that the user has their tweets protected
+          // so just mark that we should not fetch info for this user.
           tracker = tracker.withShouldFetchFriends(false);
-        } else if (userDetail.isProtected()) {
-          // The 401 error is a result of the protected status of the user and is totally normal
-          // Just mark that we have retrieved the Friends for that users and move on.
-          tracker = tracker.withFriendsFetched(true);
-        } else {
-          // The user does exist but was not marked as protected. This may be a genuinely exceptional
-          // circumstance (or the user marked themselves as protected since the retrieval began).
-          throw exception;
         }
-      } else {
-        throw exception;
+        return new long[0];
       }
     }
 
