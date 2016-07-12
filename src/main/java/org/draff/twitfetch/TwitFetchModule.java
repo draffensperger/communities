@@ -64,6 +64,8 @@ public class TwitFetchModule extends AbstractModule {
     cb.setDebugEnabled(conf.getBoolean("twitter_debug_enabled"))
         .setOAuthConsumerKey(conf.getString("twitter_consumer_key"))
         .setOAuthConsumerSecret(conf.getString("twitter_consumer_secret"))
+        //.setOAuthAccessToken(conf.getString("twitter_access_token"))
+        //.setOAuthAccessTokenSecret(conf.getString("twitter_access_token_secret"));
         .setOAuthAccessToken(conf.getString("twitter_access_token"))
         .setOAuthAccessTokenSecret(conf.getString("twitter_access_token_secret"));
     return new TwitterFactory(cb.build()).getInstance();
