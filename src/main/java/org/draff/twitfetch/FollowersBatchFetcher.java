@@ -74,8 +74,10 @@ public class FollowersBatchFetcher {
           // Typically a 401 error at this point indicates that the user has their tweets protected
           // so just mark that we should not fetch info for this user.
           tracker = tracker.withShouldFetchFollowers(false);
+          return new long[0];
+        } else {
+          throw exception;
         }
-        return new long[0];
       }
     }
 
